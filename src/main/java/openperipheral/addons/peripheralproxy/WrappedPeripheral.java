@@ -29,6 +29,15 @@ public class WrappedPeripheral implements IPeripheral {
         return (peripheral != null) ? peripheral.callMethod(computer, context, method, arguments) : null;
     }
 
+    // CC 3.2: the Lua bridge now calls callMethodResult(...), whose IPeripheral default delegates to
+    // callMethod(...). Without this override a wrapped peripheral that suspends via MethodResult
+    // (e.g. OpenPeripheral's AdapterPeripheral) would lose its suspension behind this proxy.
+    @Override
+    public Object callMethodResult(IComputerAccess computer, ILuaContext context, int method, Object[] arguments)
+        throws LuaException, InterruptedException {
+        return (peripheral != null) ? peripheral.callMethodResult(computer, context, method, arguments) : null;
+    }
+
     @Override
     public void attach(IComputerAccess computer) {
         if (peripheral != null) peripheral.attach(computer);
@@ -41,7 +50,7 @@ public class WrappedPeripheral implements IPeripheral {
 
     @Override
     public boolean equals(IPeripheral other) {
-        return other.equals(peripheral);
+        return other != null && other.equals(peripheral);
     }
 
 }

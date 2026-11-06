@@ -68,8 +68,8 @@ import openperipheral.addons.sensors.TileEntitySensor;
 @Mod(
     modid = OpenPeripheralAddons.MODID,
     name = "OpenPeripheralAddons",
-    version = "$VERSION$",
-    dependencies = "required-after:OpenMods@2.0.0;required-after:OpenPeripheralApi;after:ComputerCraft@3.2.0")
+    version = Tags.VERSION,
+    dependencies = "required-after:OpenMods@[0.10.15,);required-after:OpenPeripheralApi;after:ComputerCraft@[3.2.0,)")
 public class OpenPeripheralAddons {
 
     public static final String MODID = "OpenPeripheral";
