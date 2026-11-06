@@ -8,7 +8,7 @@ import openperipheral.api.adapter.method.ScriptCallable;
 @AdapterSourceName("glasses_clearable")
 public interface IClearable {
 
-	@ScriptCallable(description = "Clear all children from this object")
-	public void clear();
+    @ScriptCallable(description = "Clear all children from this object")
+    public void clear();
 
 }

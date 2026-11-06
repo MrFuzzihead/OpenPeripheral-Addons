@@ -13,65 +13,68 @@ import openperipheral.api.struct.StructField;
 @AdapterSourceName("glasses_shape")
 public abstract class BoundedShape<P> extends Drawable {
 
-	protected IPointList<P> pointList;
+    protected IPointList<P> pointList;
 
-	@Override
-	protected void drawContents(RenderState renderState, float partialTicks) {
-		renderState.setupSolidRender();
-	}
+    @Override
+    protected void drawContents(RenderState renderState, float partialTicks) {
+        renderState.setupSolidRender();
+    }
 
-	protected abstract void addPoints(IPointListBuilder<P> builder);
+    protected abstract void addPoints(IPointListBuilder<P> builder);
 
-	protected abstract IPointListBuilder<P> createBuilder();
+    protected abstract IPointListBuilder<P> createBuilder();
 
-	@ScriptStruct
-	public static class SimpleBox {
+    @ScriptStruct
+    public static class SimpleBox {
 
-		public SimpleBox() {}
+        public SimpleBox() {}
 
-		public SimpleBox(Box2d box) {
-			this.top = box.top;
-			this.left = box.left;
-			this.width = box.width;
-			this.height = box.height;
-		}
+        public SimpleBox(Box2d box) {
+            this.top = box.top;
+            this.left = box.left;
+            this.width = box.width;
+            this.height = box.height;
+        }
 
-		@StructField
-		public float top;
+        @StructField
+        public float top;
 
-		@StructField
-		public float left;
+        @StructField
+        public float left;
 
-		@StructField
-		public float width;
+        @StructField
+        public float width;
 
-		@StructField
-		public float height;
+        @StructField
+        public float height;
 
-	}
+    }
 
-	@ScriptCallable(returnTypes = ReturnType.TABLE, name = "getBoundingBox", description = "Get position of top left corner and dimensions")
-	public SimpleBox getBox() {
-		final Box2d bb = createAndFillBuilder().buildBoundingBox();
-		return new SimpleBox(bb);
-	}
+    @ScriptCallable(
+        returnTypes = ReturnType.TABLE,
+        name = "getBoundingBox",
+        description = "Get position of top left corner and dimensions")
+    public SimpleBox getBox() {
+        final Box2d bb = createAndFillBuilder().buildBoundingBox();
+        return new SimpleBox(bb);
+    }
 
-	@Override
-	public void onUpdate() {
-		super.onUpdate();
-		updateBoundingBox();
-	}
+    @Override
+    public void onUpdate() {
+        super.onUpdate();
+        updateBoundingBox();
+    }
 
-	private IPointListBuilder<P> createAndFillBuilder() {
-		final IPointListBuilder<P> builder = createBuilder();
-		addPoints(builder);
-		return builder;
-	}
+    private IPointListBuilder<P> createAndFillBuilder() {
+        final IPointListBuilder<P> builder = createBuilder();
+        addPoints(builder);
+        return builder;
+    }
 
-	protected final void updateBoundingBox() {
-		final IPointListBuilder<P> builder = createAndFillBuilder();
-		this.pointList = builder.buildPointList();
-		setBoundingBox(builder.buildBoundingBox());
-	}
+    protected final void updateBoundingBox() {
+        final IPointListBuilder<P> builder = createAndFillBuilder();
+        this.pointList = builder.buildPointList();
+        setBoundingBox(builder.buildBoundingBox());
+    }
 
 }

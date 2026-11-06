@@ -9,26 +9,26 @@ import openperipheral.api.struct.StructField;
 @SerializableClass
 public class Point2d {
 
-	public static final Point2d NULL = new Point2d(0, 0);
+    public static final Point2d NULL = new Point2d(0, 0);
 
-	public Point2d() {}
+    public Point2d() {}
 
-	public Point2d(float x, float y) {
-		this.x = x;
-		this.y = y;
-	}
+    public Point2d(float x, float y) {
+        this.x = x;
+        this.y = y;
+    }
 
-	@Serialize
-	@StructField(index = 0)
-	public float x;
+    @Serialize
+    @StructField(index = 0)
+    public float x;
 
-	@Serialize
-	@StructField(index = 1)
-	public float y;
+    @Serialize
+    @StructField(index = 1)
+    public float y;
 
-	@Override
-	public String toString() {
-		return "(" + x + "," + y + ")";
-	}
+    @Override
+    public String toString() {
+        return "(" + x + "," + y + ")";
+    }
 
 }

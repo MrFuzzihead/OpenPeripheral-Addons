@@ -2,7 +2,7 @@ package openperipheral.addons.glasses.utils;
 
 public interface IPolygonBuilder<P> {
 
-	public void addPoint(P point);
+    public void addPoint(P point);
 
-	public IRenderCommand build();
+    public IRenderCommand build();
 }

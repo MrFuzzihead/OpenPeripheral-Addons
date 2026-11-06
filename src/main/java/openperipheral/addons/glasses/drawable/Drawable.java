@@ -1,12 +1,17 @@
 package openperipheral.addons.glasses.drawable;
 
-import com.google.common.base.Preconditions;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+
 import net.minecraft.client.gui.ScaledResolution;
+
+import org.lwjgl.opengl.GL11;
+
+import com.google.common.base.Preconditions;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import openmods.geometry.Box2d;
 import openmods.structured.IStructureElement;
 import openmods.structured.StructureField;
@@ -20,245 +25,251 @@ import openperipheral.api.adapter.method.Arg;
 import openperipheral.api.adapter.method.ArgType;
 import openperipheral.api.adapter.method.ReturnType;
 import openperipheral.api.adapter.method.ScriptCallable;
-import org.lwjgl.opengl.GL11;
 
 @Asynchronous
 @AdapterSourceName("glasses_drawable")
 public abstract class Drawable extends StructuredObjectBase {
 
-	public static enum VerticalAlignment {
-		TOP,
-		MIDDLE,
-		BOTTOM;
+    public static enum VerticalAlignment {
 
-		public static final VerticalAlignment[] VALUES = values();
-	}
+        TOP,
+        MIDDLE,
+        BOTTOM;
 
-	public static enum HorizontalAlignment {
-		LEFT,
-		MIDDLE,
-		RIGHT;
+        public static final VerticalAlignment[] VALUES = values();
+    }
 
-		public static final HorizontalAlignment[] VALUES = values();
-	}
+    public static enum HorizontalAlignment {
 
-	private static class Alignment implements IStructureElement {
-		private static final int MASK = 0x3;
+        LEFT,
+        MIDDLE,
+        RIGHT;
 
-		private int id;
+        public static final HorizontalAlignment[] VALUES = values();
+    }
 
-		public VerticalAlignment screenVerticalAnchor = VerticalAlignment.TOP;
-		public HorizontalAlignment screenHorizontalAnchor = HorizontalAlignment.LEFT;
+    private static class Alignment implements IStructureElement {
 
-		public VerticalAlignment objectVerticalAnchor = VerticalAlignment.TOP;
-		public HorizontalAlignment objectHorizontalAnchor = HorizontalAlignment.LEFT;
+        private static final int MASK = 0x3;
 
-		@Override
-		public void readFromStream(DataInput input) throws IOException {
-			byte value = input.readByte();
-			screenVerticalAnchor = VerticalAlignment.VALUES[(value >> 0) & MASK];
-			screenHorizontalAnchor = HorizontalAlignment.VALUES[(value >> 2) & MASK];
+        private int id;
 
-			objectVerticalAnchor = VerticalAlignment.VALUES[(value >> 4) & MASK];
-			objectHorizontalAnchor = HorizontalAlignment.VALUES[(value >> 6) & MASK];
-		}
+        public VerticalAlignment screenVerticalAnchor = VerticalAlignment.TOP;
+        public HorizontalAlignment screenHorizontalAnchor = HorizontalAlignment.LEFT;
 
-		@Override
-		public void writeToStream(DataOutput output) throws IOException {
-			byte value = (byte)((screenVerticalAnchor.ordinal() << 0) |
-					(screenHorizontalAnchor.ordinal() << 2) |
-					(objectVerticalAnchor.ordinal() << 4) |
-					(objectHorizontalAnchor.ordinal() << 6));
-			output.writeByte(value);
-		}
+        public VerticalAlignment objectVerticalAnchor = VerticalAlignment.TOP;
+        public HorizontalAlignment objectHorizontalAnchor = HorizontalAlignment.LEFT;
 
-		public float getScreenAnchorX(float screenWidth) {
-			switch (screenHorizontalAnchor) {
-				case MIDDLE:
-					return screenWidth / 2.0f;
-				case RIGHT:
-					return screenWidth;
-				case LEFT:
-				default:
-					return 0;
+        @Override
+        public void readFromStream(DataInput input) throws IOException {
+            byte value = input.readByte();
+            screenVerticalAnchor = VerticalAlignment.VALUES[(value >> 0) & MASK];
+            screenHorizontalAnchor = HorizontalAlignment.VALUES[(value >> 2) & MASK];
 
-			}
-		}
+            objectVerticalAnchor = VerticalAlignment.VALUES[(value >> 4) & MASK];
+            objectHorizontalAnchor = HorizontalAlignment.VALUES[(value >> 6) & MASK];
+        }
 
-		public float getObjectAnchorX(Box2d box) {
-			switch (objectHorizontalAnchor) {
-				case MIDDLE:
-					return -box.width / 2.0f;
-				case RIGHT:
-					return -box.width;
-				case LEFT:
-				default:
-					return 0;
+        @Override
+        public void writeToStream(DataOutput output) throws IOException {
+            byte value = (byte) ((screenVerticalAnchor.ordinal() << 0) | (screenHorizontalAnchor.ordinal() << 2)
+                | (objectVerticalAnchor.ordinal() << 4)
+                | (objectHorizontalAnchor.ordinal() << 6));
+            output.writeByte(value);
+        }
 
-			}
-		}
+        public float getScreenAnchorX(float screenWidth) {
+            switch (screenHorizontalAnchor) {
+                case MIDDLE:
+                    return screenWidth / 2.0f;
+                case RIGHT:
+                    return screenWidth;
+                case LEFT:
+                default:
+                    return 0;
 
-		public float getScreenAnchorY(float screenHeight) {
-			switch (screenVerticalAnchor) {
-				case BOTTOM:
-					return screenHeight;
-				case MIDDLE:
-					return screenHeight / 2.0f;
-				default:
-				case TOP:
-					return 0;
-			}
-		}
+            }
+        }
 
-		public float getObjectAnchorY(Box2d box) {
-			switch (objectVerticalAnchor) {
-				case BOTTOM:
-					return -box.height;
-				case MIDDLE:
-					return -box.height / 2.0f;
-				default:
-				case TOP:
-					return 0;
-			}
-		}
-	}
+        public float getObjectAnchorX(Box2d box) {
+            switch (objectHorizontalAnchor) {
+                case MIDDLE:
+                    return -box.width / 2.0f;
+                case RIGHT:
+                    return -box.width;
+                case LEFT:
+                default:
+                    return 0;
 
-	private Box2d boundingBox = Box2d.NULL;
+            }
+        }
 
-	private float rotationSin;
+        public float getScreenAnchorY(float screenHeight) {
+            switch (screenVerticalAnchor) {
+                case BOTTOM:
+                    return screenHeight;
+                case MIDDLE:
+                    return screenHeight / 2.0f;
+                default:
+                case TOP:
+                    return 0;
+            }
+        }
 
-	private float rotationCos;
+        public float getObjectAnchorY(Box2d box) {
+            switch (objectVerticalAnchor) {
+                case BOTTOM:
+                    return -box.height;
+                case MIDDLE:
+                    return -box.height / 2.0f;
+                default:
+                case TOP:
+                    return 0;
+            }
+        }
+    }
 
-	private final Alignment alignment = new Alignment();
+    private Box2d boundingBox = Box2d.NULL;
 
-	@Property
-	@StructureField
-	public short z;
+    private float rotationSin;
 
-	@Property
-	@StructureField
-	public boolean visible = true;
+    private float rotationCos;
 
-	@Property
-	@StructureField
-	public boolean clickable = true;
+    private final Alignment alignment = new Alignment();
 
-	@Property
-	@StructureField
-	public float rotation = 0;
+    @Property
+    @StructureField
+    public short z;
 
-	@Property(type = ArgType.OBJECT,
-			getterDesc = "Get userdata",
-			setterDesc = "Set userdata (no restrictions, not sent to clients)",
-			nullable = true)
-	public Object userdata;
+    @Property
+    @StructureField
+    public boolean visible = true;
 
-	protected Drawable() {}
+    @Property
+    @StructureField
+    public boolean clickable = true;
 
-	public void onUpdate() {
-		final double rotationRad = rotation / 180 * Math.PI;
-		rotationCos = (float)Math.cos(rotationRad);
-		rotationSin = (float)Math.sin(rotationRad);
-	}
+    @Property
+    @StructureField
+    public float rotation = 0;
 
-	public Point2d transformToLocal(float worldX, float worldY, float screenWidth, float screenHeight) {
-		final float worldLeft = alignment.getScreenAnchorX(screenWidth) + boundingBox.left;
-		final float worldTop = alignment.getScreenAnchorY(screenHeight) + boundingBox.top;
-		worldX -= worldLeft;
-		worldY -= worldTop;
+    @Property(
+        type = ArgType.OBJECT,
+        getterDesc = "Get userdata",
+        setterDesc = "Set userdata (no restrictions, not sent to clients)",
+        nullable = true)
+    public Object userdata;
 
-		float localX = worldX * +rotationCos + worldY * +rotationSin;
-		float localY = worldX * -rotationSin + worldY * +rotationCos;
+    protected Drawable() {}
 
-		localX -= alignment.getObjectAnchorX(boundingBox);
-		localY -= alignment.getObjectAnchorY(boundingBox);
+    public void onUpdate() {
+        final double rotationRad = rotation / 180 * Math.PI;
+        rotationCos = (float) Math.cos(rotationRad);
+        rotationSin = (float) Math.sin(rotationRad);
+    }
 
-		return new Point2d(localX, localY);
-	}
+    public Point2d transformToLocal(float worldX, float worldY, float screenWidth, float screenHeight) {
+        final float worldLeft = alignment.getScreenAnchorX(screenWidth) + boundingBox.left;
+        final float worldTop = alignment.getScreenAnchorY(screenHeight) + boundingBox.top;
+        worldX -= worldLeft;
+        worldY -= worldTop;
 
-	@SideOnly(Side.CLIENT)
-	public void draw(ScaledResolution resolution, RenderState renderState, float partialTicks) {
-		final float screenX = alignment.getScreenAnchorX(resolution.getScaledWidth()) + boundingBox.left;
-		final float screenY = alignment.getScreenAnchorY(resolution.getScaledHeight()) + boundingBox.top;
+        float localX = worldX * +rotationCos + worldY * +rotationSin;
+        float localY = worldX * -rotationSin + worldY * +rotationCos;
 
-		final float anchorX = alignment.getObjectAnchorX(boundingBox);
-		final float anchorY = alignment.getObjectAnchorY(boundingBox);
+        localX -= alignment.getObjectAnchorX(boundingBox);
+        localY -= alignment.getObjectAnchorY(boundingBox);
 
-		GL11.glPushMatrix();
-		if (rotation != 0) {
-			GL11.glTranslatef(screenX, screenY, z);
-			GL11.glRotated(rotation, 0, 0, 1);
-			GL11.glTranslatef(anchorX, anchorY, 0);
-		} else {
-			GL11.glTranslatef(screenX + anchorX, screenY + anchorY, z);
-		}
+        return new Point2d(localX, localY);
+    }
 
-		drawContents(renderState, partialTicks);
-		GL11.glPopMatrix();
-	}
+    @SideOnly(Side.CLIENT)
+    public void draw(ScaledResolution resolution, RenderState renderState, float partialTicks) {
+        final float screenX = alignment.getScreenAnchorX(resolution.getScaledWidth()) + boundingBox.left;
+        final float screenY = alignment.getScreenAnchorY(resolution.getScaledHeight()) + boundingBox.top;
 
-	protected void setBoundingBox(Box2d boundingBox) {
-		Preconditions.checkNotNull(boundingBox);
-		this.boundingBox = boundingBox;
-	}
+        final float anchorX = alignment.getObjectAnchorX(boundingBox);
+        final float anchorY = alignment.getObjectAnchorY(boundingBox);
 
-	@SideOnly(Side.CLIENT)
-	protected abstract void drawContents(RenderState renderState, float partialTicks);
+        GL11.glPushMatrix();
+        if (rotation != 0) {
+            GL11.glTranslatef(screenX, screenY, z);
+            GL11.glRotated(rotation, 0, 0, 1);
+            GL11.glTranslatef(anchorX, anchorY, 0);
+        } else {
+            GL11.glTranslatef(screenX + anchorX, screenY + anchorY, z);
+        }
 
-	protected abstract DrawableType getTypeEnum();
+        drawContents(renderState, partialTicks);
+        GL11.glPopMatrix();
+    }
 
-	protected abstract boolean isVisible();
+    protected void setBoundingBox(Box2d boundingBox) {
+        Preconditions.checkNotNull(boundingBox);
+        this.boundingBox = boundingBox;
+    }
 
-	public final boolean shouldRender() {
-		return visible && isVisible();
-	}
+    @SideOnly(Side.CLIENT)
+    protected abstract void drawContents(RenderState renderState, float partialTicks);
 
-	public boolean isClickable() {
-		return clickable;
-	}
+    protected abstract DrawableType getTypeEnum();
 
-	@Override
-	public int getType() {
-		return getTypeEnum().ordinal();
-	}
+    protected abstract boolean isVisible();
 
-	@ScriptCallable(returnTypes = ReturnType.STRING, name = "getType", description = "Get object type")
-	public String getTypeName() {
-		return getTypeEnum().name().toLowerCase();
-	}
+    public final boolean shouldRender() {
+        return visible && isVisible();
+    }
 
-	public VerticalAlignment getScreenVerticalAnchor() {
-		return alignment.screenVerticalAnchor;
-	}
+    public boolean isClickable() {
+        return clickable;
+    }
 
-	@ScriptCallable
-	public void setScreenAnchor(@Arg(name = "horizontal") HorizontalAlignment horizontal, @Arg(name = "vertical") VerticalAlignment vertical) {
-		alignment.screenVerticalAnchor = vertical;
-		alignment.screenHorizontalAnchor = horizontal;
-		markModified(alignment.id);
-	}
+    @Override
+    public int getType() {
+        return getTypeEnum().ordinal();
+    }
 
-	@ScriptCallable
-	public void setObjectAnchor(@Arg(name = "horizontal") HorizontalAlignment horizontal, @Arg(name = "vertical") VerticalAlignment vertical) {
-		alignment.objectVerticalAnchor = vertical;
-		alignment.objectHorizontalAnchor = horizontal;
-		markModified(alignment.id);
-	}
+    @ScriptCallable(returnTypes = ReturnType.STRING, name = "getType", description = "Get object type")
+    public String getTypeName() {
+        return getTypeEnum().name()
+            .toLowerCase();
+    }
 
-	@ScriptCallable
-	public void setAlignment(@Arg(name = "horizontal") HorizontalAlignment horizontal, @Arg(name = "vertical") VerticalAlignment vertical) {
-		alignment.objectVerticalAnchor = alignment.screenVerticalAnchor = vertical;
-		alignment.objectHorizontalAnchor = alignment.screenHorizontalAnchor = horizontal;
-		markModified(alignment.id);
-	}
+    public VerticalAlignment getScreenVerticalAnchor() {
+        return alignment.screenVerticalAnchor;
+    }
 
-	@Override
-	public void createElements(IElementAddCallback<IStructureElement> callback) {
-		super.createElements(callback);
-		alignment.id = callback.addElement(alignment);
-	}
+    @ScriptCallable
+    public void setScreenAnchor(@Arg(name = "horizontal") HorizontalAlignment horizontal,
+        @Arg(name = "vertical") VerticalAlignment vertical) {
+        alignment.screenVerticalAnchor = vertical;
+        alignment.screenHorizontalAnchor = horizontal;
+        markModified(alignment.id);
+    }
 
-	public Box2d getBoundingBox() {
-		return boundingBox;
-	}
+    @ScriptCallable
+    public void setObjectAnchor(@Arg(name = "horizontal") HorizontalAlignment horizontal,
+        @Arg(name = "vertical") VerticalAlignment vertical) {
+        alignment.objectVerticalAnchor = vertical;
+        alignment.objectHorizontalAnchor = horizontal;
+        markModified(alignment.id);
+    }
+
+    @ScriptCallable
+    public void setAlignment(@Arg(name = "horizontal") HorizontalAlignment horizontal,
+        @Arg(name = "vertical") VerticalAlignment vertical) {
+        alignment.objectVerticalAnchor = alignment.screenVerticalAnchor = vertical;
+        alignment.objectHorizontalAnchor = alignment.screenHorizontalAnchor = horizontal;
+        markModified(alignment.id);
+    }
+
+    @Override
+    public void createElements(IElementAddCallback<IStructureElement> callback) {
+        super.createElements(callback);
+        alignment.id = callback.addElement(alignment);
+    }
+
+    public Box2d getBoundingBox() {
+        return boundingBox;
+    }
 }

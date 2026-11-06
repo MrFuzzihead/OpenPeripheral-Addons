@@ -10,22 +10,22 @@ import openperipheral.api.adapter.method.ScriptObject;
 @AdapterSourceName("glasses_gradient_quad")
 public class GradientQuad extends Quad<ColorPoint2d> {
 
-	public GradientQuad() {
-		this(ColorPoint2d.NULL, ColorPoint2d.NULL, ColorPoint2d.NULL, ColorPoint2d.NULL);
-	}
+    public GradientQuad() {
+        this(ColorPoint2d.NULL, ColorPoint2d.NULL, ColorPoint2d.NULL, ColorPoint2d.NULL);
+    }
 
-	public GradientQuad(ColorPoint2d p1, ColorPoint2d p2, ColorPoint2d p3, ColorPoint2d p4) {
-		super(p1, p2, p3, p4);
-	}
+    public GradientQuad(ColorPoint2d p1, ColorPoint2d p2, ColorPoint2d p3, ColorPoint2d p4) {
+        super(p1, p2, p3, p4);
+    }
 
-	@Override
-	protected IPointListBuilder<ColorPoint2d> createBuilder() {
-		return new ColorPointListBuilder();
-	}
+    @Override
+    protected IPointListBuilder<ColorPoint2d> createBuilder() {
+        return new ColorPointListBuilder();
+    }
 
-	@Override
-	protected DrawableType getTypeEnum() {
-		return DrawableType.GRADIENT_QUAD;
-	}
+    @Override
+    protected DrawableType getTypeEnum() {
+        return DrawableType.GRADIENT_QUAD;
+    }
 
 }

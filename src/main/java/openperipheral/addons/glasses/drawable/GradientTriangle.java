@@ -10,22 +10,22 @@ import openperipheral.api.adapter.method.ScriptObject;
 @AdapterSourceName("glasses_gradient_triangle")
 public class GradientTriangle extends Triangle<ColorPoint2d> {
 
-	public GradientTriangle() {
-		this(ColorPoint2d.NULL, ColorPoint2d.NULL, ColorPoint2d.NULL);
-	}
+    public GradientTriangle() {
+        this(ColorPoint2d.NULL, ColorPoint2d.NULL, ColorPoint2d.NULL);
+    }
 
-	public GradientTriangle(ColorPoint2d p1, ColorPoint2d p2, ColorPoint2d p3) {
-		super(p1, p2, p3);
-	}
+    public GradientTriangle(ColorPoint2d p1, ColorPoint2d p2, ColorPoint2d p3) {
+        super(p1, p2, p3);
+    }
 
-	@Override
-	protected IPointListBuilder<ColorPoint2d> createBuilder() {
-		return new ColorPointListBuilder();
-	}
+    @Override
+    protected IPointListBuilder<ColorPoint2d> createBuilder() {
+        return new ColorPointListBuilder();
+    }
 
-	@Override
-	protected DrawableType getTypeEnum() {
-		return DrawableType.GRADIENT_TRIANGLE;
-	}
+    @Override
+    protected DrawableType getTypeEnum() {
+        return DrawableType.GRADIENT_TRIANGLE;
+    }
 
 }

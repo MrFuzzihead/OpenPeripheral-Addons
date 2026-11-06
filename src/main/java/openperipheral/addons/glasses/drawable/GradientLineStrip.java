@@ -10,20 +10,20 @@ import openperipheral.api.adapter.method.ScriptObject;
 @AdapterSourceName("glasses_gradient_line_strip")
 public class GradientLineStrip extends LineStrip<ColorPoint2d> {
 
-	public GradientLineStrip() {}
+    public GradientLineStrip() {}
 
-	public GradientLineStrip(ColorPoint2d... points) {
-		super(points);
-	}
+    public GradientLineStrip(ColorPoint2d... points) {
+        super(points);
+    }
 
-	@Override
-	protected IPointListBuilder<ColorPoint2d> createBuilder() {
-		return new ColorPointListBuilder();
-	}
+    @Override
+    protected IPointListBuilder<ColorPoint2d> createBuilder() {
+        return new ColorPointListBuilder();
+    }
 
-	@Override
-	protected DrawableType getTypeEnum() {
-		return DrawableType.GRADIENT_LINE_STRIP;
-	}
+    @Override
+    protected DrawableType getTypeEnum() {
+        return DrawableType.GRADIENT_LINE_STRIP;
+    }
 
 }

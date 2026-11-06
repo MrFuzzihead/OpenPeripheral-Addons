@@ -1,5 +1,12 @@
 package openperipheral.addons;
 
+import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.item.Item;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.config.Configuration;
+
+import org.apache.commons.lang3.ObjectUtils;
+
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.Mod;
@@ -10,10 +17,6 @@ import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLMissingMappingsEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.network.NetworkRegistry;
-import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.item.Item;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.config.Configuration;
 import openmods.Mods;
 import openmods.OpenMods;
 import openmods.access.ApiFactory;
@@ -61,149 +64,167 @@ import openperipheral.addons.selector.TileEntitySelector;
 import openperipheral.addons.sensors.AdapterSensor;
 import openperipheral.addons.sensors.BlockSensor;
 import openperipheral.addons.sensors.TileEntitySensor;
-import org.apache.commons.lang3.ObjectUtils;
 
-@Mod(modid = OpenPeripheralAddons.MODID, name = "OpenPeripheralAddons", version = "$VERSION$", dependencies = "required-after:OpenMods@[$LIB-VERSION$,$NEXT-LIB-VERSION$);required-after:OpenPeripheralApi@$OP-API-VERSION$;after:ComputerCraft@[1.70,]")
+@Mod(
+    modid = OpenPeripheralAddons.MODID,
+    name = "OpenPeripheralAddons",
+    version = "$VERSION$",
+    dependencies = "required-after:OpenMods@[$LIB-VERSION$,$NEXT-LIB-VERSION$);required-after:OpenPeripheralApi@$OP-API-VERSION$;after:ComputerCraft@[1.70,]")
 public class OpenPeripheralAddons {
 
-	public static final String MODID = "OpenPeripheral";
+    public static final String MODID = "OpenPeripheral";
 
-	public static class Blocks implements BlockInstances {
-		@RegisterBlock(name = "glassesbridge", tileEntity = TileEntityGlassesBridge.class, itemBlock = ItemGlassesBridge.class, textureName = "bridge")
-		public static BlockGlassesBridge glassesBridge;
+    public static class Blocks implements BlockInstances {
 
-		@RegisterBlock(name = "pim", tileEntity = TileEntityPIM.class, unlocalizedName = "playerinventory", textureName = "pim_blue")
-		public static BlockPIM pim;
+        @RegisterBlock(
+            name = "glassesbridge",
+            tileEntity = TileEntityGlassesBridge.class,
+            itemBlock = ItemGlassesBridge.class,
+            textureName = "bridge")
+        public static BlockGlassesBridge glassesBridge;
 
-		@RegisterBlock(name = "sensor", tileEntity = TileEntitySensor.class)
-		public static BlockSensor sensor;
+        @RegisterBlock(
+            name = "pim",
+            tileEntity = TileEntityPIM.class,
+            unlocalizedName = "playerinventory",
+            textureName = "pim_blue")
+        public static BlockPIM pim;
 
-		@RegisterBlock(name = "selector", tileEntity = TileEntitySelector.class, textureName = "selector_side")
-		public static BlockSelector selector;
-	}
+        @RegisterBlock(name = "sensor", tileEntity = TileEntitySensor.class)
+        public static BlockSensor sensor;
 
-	public static class Items implements ItemInstances {
-		@RegisterItem(name = "glasses")
-		public static ItemGlasses glasses;
+        @RegisterBlock(name = "selector", tileEntity = TileEntitySelector.class, textureName = "selector_side")
+        public static BlockSelector selector;
+    }
 
-		@RegisterItem(name = "keyboard")
-		public static ItemKeyboard keyboard;
+    public static class Items implements ItemInstances {
 
-		@RegisterItem(name = "generic", textureName = RegisterItem.NONE)
-		public static ItemOPGeneric generic;
-	}
+        @RegisterItem(name = "glasses")
+        public static ItemGlasses glasses;
 
-	public static int renderId;
+        @RegisterItem(name = "keyboard")
+        public static ItemKeyboard keyboard;
 
-	@Instance(MODID)
-	public static OpenPeripheralAddons instance;
+        @RegisterItem(name = "generic", textureName = RegisterItem.NONE)
+        public static ItemOPGeneric generic;
+    }
 
-	@SidedProxy(clientSide = "openperipheral.addons.proxy.ClientProxy", serverSide = "openperipheral.addons.proxy.ServerProxy")
-	public static IProxy proxy;
+    public static int renderId;
 
-	public static CreativeTabs tabOpenPeripheralAddons = new CreativeTabs("tabOpenPeripheralAddons") {
-		@Override
-		public Item getTabIconItem() {
-			return ObjectUtils.firstNonNull(Items.glasses, net.minecraft.init.Items.fish);
-		}
-	};
+    @Instance(MODID)
+    public static OpenPeripheralAddons instance;
 
-	private final ModStartupHelper startupHelper = new ModStartupHelper("openperipheral") {
+    @SidedProxy(
+        clientSide = "openperipheral.addons.proxy.ClientProxy",
+        serverSide = "openperipheral.addons.proxy.ServerProxy")
+    public static IProxy proxy;
 
-		@Override
-		protected void setupIds(GameConfigProvider gameConfig) {
-			gameConfig.setTextureModId("openperipheraladdons");
-		}
+    public static CreativeTabs tabOpenPeripheralAddons = new CreativeTabs("tabOpenPeripheralAddons") {
 
-		@Override
-		protected void populateConfig(Configuration config) {
-			ConfigProcessing.processAnnotations("OpenPeripheralAddons", config, Config.class);
-		}
-	};
+        @Override
+        public Item getTabIconItem() {
+            return ObjectUtils.firstNonNull(Items.glasses, net.minecraft.init.Items.fish);
+        }
+    };
 
-	@EventHandler
-	public void preInit(FMLPreInitializationEvent evt) {
-		startupHelper.registerBlocksHolder(OpenPeripheralAddons.Blocks.class);
-		startupHelper.registerItemsHolder(OpenPeripheralAddons.Items.class);
+    private final ModStartupHelper startupHelper = new ModStartupHelper("openperipheral") {
 
-		if (Loader.isModLoaded(Mods.COMPUTERCRAFT)) ModuleComputerCraft.preInit(startupHelper);
-		if (Loader.isModLoaded(Mods.RAILCRAFT)) ModuleRailcraft.preInit(startupHelper);
+        @Override
+        protected void setupIds(GameConfigProvider gameConfig) {
+            gameConfig.setTextureModId("openperipheraladdons");
+        }
 
-		startupHelper.preInit(evt.getSuggestedConfigurationFile());
+        @Override
+        protected void populateConfig(Configuration config) {
+            ConfigProcessing.processAnnotations("OpenPeripheralAddons", config, Config.class);
+        }
+    };
 
-		Recipes.register();
-		MetasGeneric.registerItems();
+    @EventHandler
+    public void preInit(FMLPreInitializationEvent evt) {
+        startupHelper.registerBlocksHolder(OpenPeripheralAddons.Blocks.class);
+        startupHelper.registerItemsHolder(OpenPeripheralAddons.Items.class);
 
-		NetworkEventManager.INSTANCE
-				.startRegistration()
-				.register(TerminalEvent.PrivateDrawableReset.class)
-				.register(TerminalEvent.PublicDrawableReset.class)
-				.register(TerminalEvent.PrivateStructureReset.class)
-				.register(TerminalEvent.PublicStructureReset.class)
+        if (Loader.isModLoaded(Mods.COMPUTERCRAFT)) ModuleComputerCraft.preInit(startupHelper);
+        if (Loader.isModLoaded(Mods.RAILCRAFT)) ModuleRailcraft.preInit(startupHelper);
 
-				.register(TerminalEvent.PrivateClear.class)
-				.register(TerminalEvent.PublicClear.class)
+        startupHelper.preInit(evt.getSuggestedConfigurationFile());
 
-				.register(TerminalEvent.PrivateDrawableData.class)
-				.register(TerminalEvent.PublicDrawableData.class)
-				.register(TerminalEvent.PrivateStructureData.class)
-				.register(TerminalEvent.PublicStructureData.class)
+        Recipes.register();
+        MetasGeneric.registerItems();
 
-				.register(GlassesSignalCaptureEvent.class)
-				.register(GlassesStopCaptureEvent.class)
-				.register(GlassesMouseWheelEvent.class)
-				.register(GlassesMouseButtonEvent.class)
-				.register(GlassesComponentMouseWheelEvent.class)
-				.register(GlassesComponentMouseButtonEvent.class)
-				.register(GlassesMouseDragEvent.class)
-				.register(GlassesKeyDownEvent.class)
-				.register(GlassesKeyUpEvent.class)
-				.register(GlassesChangeBackgroundEvent.class)
-				.register(GlassesSetDragParamsEvent.class)
-				.register(GlassesSetKeyRepeatEvent.class)
-				.register(GlassesSetGuiVisibilityEvent.class);
+        NetworkEventManager.INSTANCE.startRegistration()
+            .register(TerminalEvent.PrivateDrawableReset.class)
+            .register(TerminalEvent.PublicDrawableReset.class)
+            .register(TerminalEvent.PrivateStructureReset.class)
+            .register(TerminalEvent.PublicStructureReset.class)
 
-		Items.generic.initRecipes();
+            .register(TerminalEvent.PrivateClear.class)
+            .register(TerminalEvent.PublicClear.class)
 
-		MinecraftForge.EVENT_BUS.register(TerminalManagerServer.instance.createForgeListener());
-		FMLCommonHandler.instance().bus().register(TerminalManagerServer.instance.createFmlListener());
+            .register(TerminalEvent.PrivateDrawableData.class)
+            .register(TerminalEvent.PublicDrawableData.class)
+            .register(TerminalEvent.PrivateStructureData.class)
+            .register(TerminalEvent.PublicStructureData.class)
 
-		NetworkRegistry.INSTANCE.registerGuiHandler(instance, OpenMods.proxy.wrapHandler(null));
+            .register(GlassesSignalCaptureEvent.class)
+            .register(GlassesStopCaptureEvent.class)
+            .register(GlassesMouseWheelEvent.class)
+            .register(GlassesMouseButtonEvent.class)
+            .register(GlassesComponentMouseWheelEvent.class)
+            .register(GlassesComponentMouseButtonEvent.class)
+            .register(GlassesMouseDragEvent.class)
+            .register(GlassesKeyDownEvent.class)
+            .register(GlassesKeyUpEvent.class)
+            .register(GlassesChangeBackgroundEvent.class)
+            .register(GlassesSetDragParamsEvent.class)
+            .register(GlassesSetKeyRepeatEvent.class)
+            .register(GlassesSetGuiVisibilityEvent.class);
 
-		TerminalIdAccess.instance.register(new TerminalIdAccess.InterfaceGetter());
-		TerminalIdAccess.instance.register(new TerminalIdAccess.InterfaceSetter());
+        Items.generic.initRecipes();
 
-		TerminalIdAccess.instance.register(new NbtGuidProviders.NbtGetter());
-		TerminalIdAccess.instance.register(new NbtGuidProviders.NbtSetter());
+        MinecraftForge.EVENT_BUS.register(TerminalManagerServer.instance.createForgeListener());
+        FMLCommonHandler.instance()
+            .bus()
+            .register(TerminalManagerServer.instance.createFmlListener());
 
-		ApiFactory.instance.createApi(ApiHolder.class, IApiInterface.class, evt.getAsmData(),
-				new ApiProviderSetup<IApiInterface>() {
-					@Override
-					public void setup(ApiProviderRegistry<IApiInterface> registry) {
-						registry.registerInstance(TerminalIdAccess.instance);
-					}
-				});
+        NetworkRegistry.INSTANCE.registerGuiHandler(instance, OpenMods.proxy.wrapHandler(null));
 
-		proxy.preInit();
-	}
+        TerminalIdAccess.instance.register(new TerminalIdAccess.InterfaceGetter());
+        TerminalIdAccess.instance.register(new TerminalIdAccess.InterfaceSetter());
 
-	@EventHandler
-	public void handleRenames(FMLMissingMappingsEvent event) {
-		startupHelper.handleRenames(event);
-	}
+        TerminalIdAccess.instance.register(new NbtGuidProviders.NbtGetter());
+        TerminalIdAccess.instance.register(new NbtGuidProviders.NbtSetter());
 
-	@EventHandler
-	public void init(FMLInitializationEvent evt) {
-		proxy.init();
-		proxy.registerRenderInformation();
+        ApiFactory.instance
+            .createApi(ApiHolder.class, IApiInterface.class, evt.getAsmData(), new ApiProviderSetup<IApiInterface>() {
 
-		OpcAccess.checkApiPresent();
+                @Override
+                public void setup(ApiProviderRegistry<IApiInterface> registry) {
+                    registry.registerInstance(TerminalIdAccess.instance);
+                }
+            });
 
-		OpcAccess.adapterRegistry.register(new AdapterSensor());
+        proxy.preInit();
+    }
 
-		OpcAccess.itemStackMetaBuilder.register(new ItemTerminalMetaProvider());
-		OpcAccess.itemStackMetaBuilder.register(new NbtTerminalMetaProvider());
+    @EventHandler
+    public void handleRenames(FMLMissingMappingsEvent event) {
+        startupHelper.handleRenames(event);
+    }
 
-		if (Loader.isModLoaded(Mods.COMPUTERCRAFT)) ModuleComputerCraft.init();
-	}
+    @EventHandler
+    public void init(FMLInitializationEvent evt) {
+        proxy.init();
+        proxy.registerRenderInformation();
+
+        OpcAccess.checkApiPresent();
+
+        OpcAccess.adapterRegistry.register(new AdapterSensor());
+
+        OpcAccess.itemStackMetaBuilder.register(new ItemTerminalMetaProvider());
+        OpcAccess.itemStackMetaBuilder.register(new NbtTerminalMetaProvider());
+
+        if (Loader.isModLoaded(Mods.COMPUTERCRAFT)) ModuleComputerCraft.init();
+    }
 }
