@@ -1,21 +1,28 @@
-[
 {
-  "modid" : "OpenPeripheral",
-  "name" : "OpenPeripheralAddons",
-  "version" : "${version}",
-  "url" : "http://www.openperipheral.info",
-  "credits" : "Everyone in #ComputerCraft, #OpenMods and #OpenCCSensors, also ChickenBones",
-  "authors": [
-    "Mikeemoo",
-    "cybcaoyibo",
-    "SinZ",
-    "theoriginalbit",
-    "Foone"
-  ],
-  "description": "Random CC peripherals",
-  "logoFile" : "",
-  "updateUrl" : "",
-  "parent" : "",
-  "screenshots": [
-  ]
-}]
+  "modListVersion": 2,
+  "modList": [{
+    "modid": "${modId}",
+    "name": "${modName}",
+    "description": "Random CC peripherals",
+    "version": "${modVersion}",
+    "mcversion": "${minecraftVersion}",
+    "url": "https://github.com/MrFuzzihead/https://github.com/MrFuzzihead/OpenPeripheral-Addons",
+    "updateUrl": "https://github.com/MrFuzzihead/https://github.com/MrFuzzihead/OpenPeripheral-Addons/releases/latest",
+    "authorList": [
+      "MrFuzzihead",
+      "Mikeemoo",
+		"cybcaoyibo",
+		"SinZ",
+		"theoriginalbit",
+		"Foone"
+    ],
+    "credits": "",
+    "logoFile": "",
+    "screenshots": [],
+    "parent": "",
+    "requiredMods": [],
+    "dependencies": [],
+    "dependants": [],
+    "useDependencyInformation": false
+  }]
+}
