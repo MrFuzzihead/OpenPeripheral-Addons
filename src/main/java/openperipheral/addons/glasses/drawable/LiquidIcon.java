@@ -1,13 +1,14 @@
 package openperipheral.addons.glasses.drawable;
 
-import cpw.mods.fml.client.FMLClientHandler;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.util.IIcon;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
+
+import cpw.mods.fml.client.FMLClientHandler;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import openmods.geometry.Box2d;
 import openmods.structured.StructureField;
 import openperipheral.addons.glasses.utils.GlassesRenderingUtils;
@@ -19,103 +20,105 @@ import openperipheral.api.adapter.method.ScriptObject;
 @ScriptObject
 @AdapterSourceName("glasses_liquid")
 public class LiquidIcon extends Drawable {
-	@Property
-	@StructureField
-	public float x;
 
-	@Property
-	@StructureField
-	public float y;
+    @Property
+    @StructureField
+    public float x;
 
-	@Property
-	@StructureField
-	public float width;
+    @Property
+    @StructureField
+    public float y;
 
-	@Property
-	@StructureField
-	public float height;
+    @Property
+    @StructureField
+    public float width;
 
-	@Property
-	@StructureField
-	public String fluid;
+    @Property
+    @StructureField
+    public float height;
 
-	@Property
-	@StructureField
-	public float alpha = 1;
+    @Property
+    @StructureField
+    public String fluid;
 
-	private IIcon fluidIcon;
+    @Property
+    @StructureField
+    public float alpha = 1;
 
-	private int iconWidth;
+    private IIcon fluidIcon;
 
-	private int iconHeight;
+    private int iconWidth;
 
-	LiquidIcon() {}
+    private int iconHeight;
 
-	public LiquidIcon(float x, float y, float width, float height, String fluid) {
-		this.x = x;
-		this.y = y;
-		this.width = width;
-		this.height = height;
-		this.fluid = fluid;
-	}
+    LiquidIcon() {}
 
-	@Override
-	@SideOnly(Side.CLIENT)
-	protected void drawContents(RenderState renderState, float partialTicks) {
-		if (fluidIcon == null || iconWidth <= 0 || iconHeight <= 0) return;
+    public LiquidIcon(float x, float y, float width, float height, String fluid) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.fluid = fluid;
+    }
 
-		renderState.setupTexturedRender();
-		renderState.setColor(0xFFFFFF, alpha);
+    @Override
+    @SideOnly(Side.CLIENT)
+    protected void drawContents(RenderState renderState, float partialTicks) {
+        if (fluidIcon == null || iconWidth <= 0 || iconHeight <= 0) return;
 
-		TextureManager render = FMLClientHandler.instance().getClient().renderEngine;
-		render.bindTexture(TextureMap.locationBlocksTexture);
-		float xIterations = width / iconWidth;
-		float yIterations = height / iconHeight;
+        renderState.setupTexturedRender();
+        renderState.setColor(0xFFFFFF, alpha);
 
-		for (float xIteration = 0; xIteration < xIterations; xIteration += 1) {
-			for (float yIteration = 0; yIteration < yIterations; yIteration += 1) {
-				// Draw whole or partial
-				final float xDrawSize = Math.min(xIterations - xIteration, 1);
-				final float yDrawSize = Math.min(yIterations - yIteration, 1);
+        TextureManager render = FMLClientHandler.instance()
+            .getClient().renderEngine;
+        render.bindTexture(TextureMap.locationBlocksTexture);
+        float xIterations = width / iconWidth;
+        float yIterations = height / iconHeight;
 
-				GlassesRenderingUtils.drawTexturedQuad(
-						xIteration * iconWidth,
-						yIteration * iconHeight,
-						fluidIcon,
-						xDrawSize * iconWidth,
-						yDrawSize * iconHeight,
-						xDrawSize,
-						yDrawSize);
-			}
-		}
-	}
+        for (float xIteration = 0; xIteration < xIterations; xIteration += 1) {
+            for (float yIteration = 0; yIteration < yIterations; yIteration += 1) {
+                // Draw whole or partial
+                final float xDrawSize = Math.min(xIterations - xIteration, 1);
+                final float yDrawSize = Math.min(yIterations - yIteration, 1);
 
-	@Override
-	public DrawableType getTypeEnum() {
-		return DrawableType.LIQUID;
-	}
+                GlassesRenderingUtils.drawTexturedQuad(
+                    xIteration * iconWidth,
+                    yIteration * iconHeight,
+                    fluidIcon,
+                    xDrawSize * iconWidth,
+                    yDrawSize * iconHeight,
+                    xDrawSize,
+                    yDrawSize);
+            }
+        }
+    }
 
-	@Override
-	public boolean isVisible() {
-		return alpha > 0 && fluidIcon != null && iconWidth > 0 && iconHeight > 0;
-	}
+    @Override
+    public DrawableType getTypeEnum() {
+        return DrawableType.LIQUID;
+    }
 
-	@Override
-	public void onUpdate() {
-		super.onUpdate();
+    @Override
+    public boolean isVisible() {
+        return alpha > 0 && fluidIcon != null && iconWidth > 0 && iconHeight > 0;
+    }
 
-		fluidIcon = findFluidIcon(fluid);
-		if (fluidIcon != null) {
-			iconWidth = fluidIcon.getIconWidth();
-			iconHeight = fluidIcon.getIconHeight();
-		}
+    @Override
+    public void onUpdate() {
+        super.onUpdate();
 
-		setBoundingBox(Box2d.fromOriginAndSize(x, y, width, height));
-	}
+        fluidIcon = findFluidIcon(fluid);
+        if (fluidIcon != null) {
+            iconWidth = fluidIcon.getIconWidth();
+            iconHeight = fluidIcon.getIconHeight();
+        }
 
-	private static IIcon findFluidIcon(String fluid) {
-		Fluid drawLiquid = FluidRegistry.getFluid(fluid);
-		return drawLiquid != null? drawLiquid.getFlowingIcon() : null;
-	}
+        setBoundingBox(Box2d.fromOriginAndSize(x, y, width, height));
+    }
+
+    private static IIcon findFluidIcon(String fluid) {
+        Fluid drawLiquid = FluidRegistry.getFluid(fluid);
+        return drawLiquid != null ? drawLiquid.getFlowingIcon() : null;
+    }
 
 }

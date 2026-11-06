@@ -1,8 +1,10 @@
 package openperipheral.addons.glasses.drawable;
 
-import com.google.common.collect.Lists;
 import java.util.Arrays;
 import java.util.List;
+
+import com.google.common.collect.Lists;
+
 import openmods.structured.StructureField;
 import openperipheral.addons.glasses.utils.IPointListBuilder;
 import openperipheral.addons.glasses.utils.IPolygonBuilder;
@@ -13,47 +15,45 @@ import openperipheral.api.adapter.Property;
 
 public abstract class Polygon<P> extends BoundedShape<P> {
 
-	@Property
-	@StructureField
-	@IndexedProperty(expandable = true, nullable = true)
-	public List<P> points = Lists.newArrayList();
+    @Property
+    @StructureField
+    @IndexedProperty(expandable = true, nullable = true)
+    public List<P> points = Lists.newArrayList();
 
-	private IRenderCommand renderCommands;
+    private IRenderCommand renderCommands;
 
-	public Polygon(P... points) {
-		this.points.addAll(Arrays.asList(points));
-	}
+    public Polygon(P... points) {
+        this.points.addAll(Arrays.asList(points));
+    }
 
-	@Override
-	protected void addPoints(IPointListBuilder<P> builder) {
-		for (P p : points)
-			if (p != null) builder.add(p);
-	}
+    @Override
+    protected void addPoints(IPointListBuilder<P> builder) {
+        for (P p : points) if (p != null) builder.add(p);
+    }
 
-	@Override
-	protected boolean isVisible() {
-		return pointList.size() > 1;
-	}
+    @Override
+    protected boolean isVisible() {
+        return pointList.size() > 1;
+    }
 
-	protected final boolean canRender() {
-		return renderCommands != null;
-	}
+    protected final boolean canRender() {
+        return renderCommands != null;
+    }
 
-	protected final void renderPolygon(RenderState renderState) {
-		renderCommands.execute(renderState);
-	}
+    protected final void renderPolygon(RenderState renderState) {
+        renderCommands.execute(renderState);
+    }
 
-	protected abstract IPolygonBuilder<P> createPolygonBuilder();
+    protected abstract IPolygonBuilder<P> createPolygonBuilder();
 
-	@Override
-	public void onUpdate() {
-		super.onUpdate();
-		final IPolygonBuilder<P> builder = createPolygonBuilder();
+    @Override
+    public void onUpdate() {
+        super.onUpdate();
+        final IPolygonBuilder<P> builder = createPolygonBuilder();
 
-		for (P point : pointList)
-			builder.addPoint(point);
+        for (P point : pointList) builder.addPoint(point);
 
-		this.renderCommands = builder.build();
-	}
+        this.renderCommands = builder.build();
+    }
 
 }

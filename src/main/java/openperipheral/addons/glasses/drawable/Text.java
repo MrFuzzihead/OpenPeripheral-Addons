@@ -1,93 +1,99 @@
 package openperipheral.addons.glasses.drawable;
 
+import net.minecraft.client.gui.FontRenderer;
+
+import org.lwjgl.opengl.GL11;
+
 import com.google.common.base.Strings;
+
 import cpw.mods.fml.client.FMLClientHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import net.minecraft.client.gui.FontRenderer;
 import openmods.geometry.Box2d;
 import openmods.structured.StructureField;
 import openperipheral.addons.glasses.utils.RenderState;
 import openperipheral.api.adapter.AdapterSourceName;
 import openperipheral.api.adapter.Property;
 import openperipheral.api.adapter.method.ScriptObject;
-import org.lwjgl.opengl.GL11;
 
 @ScriptObject
 @AdapterSourceName("glasses_text")
 public class Text extends Drawable {
-	@Property
-	@StructureField
-	public float x;
 
-	@Property
-	@StructureField
-	public float y;
+    @Property
+    @StructureField
+    public float x;
 
-	@Property
-	@StructureField
-	public String text;
+    @Property
+    @StructureField
+    public float y;
 
-	@Property
-	@StructureField
-	public int color;
+    @Property
+    @StructureField
+    public String text;
 
-	@Property
-	@StructureField
-	public float alpha = 1;
+    @Property
+    @StructureField
+    public int color;
 
-	@Property
-	@StructureField
-	public float scale = 1;
+    @Property
+    @StructureField
+    public float alpha = 1;
 
-	Text() {}
+    @Property
+    @StructureField
+    public float scale = 1;
 
-	public Text(float x, float y, String text, int color) {
-		this.x = x;
-		this.y = y;
-		this.text = text;
-		this.color = color;
-	}
+    Text() {}
 
-	@Override
-	@SideOnly(Side.CLIENT)
-	protected void drawContents(RenderState renderState, float partialTicks) {
-		renderState.setupTexturedRender();
-		renderState.setColor(color, alpha);
+    public Text(float x, float y, String text, int color) {
+        this.x = x;
+        this.y = y;
+        this.text = text;
+        this.color = color;
+    }
 
-		FontRenderer fontRenderer = FMLClientHandler.instance().getClient().fontRenderer;
-		GL11.glScalef(scale, scale, scale);
-		fontRenderer.drawString(text, 0, 0, ((int)(alpha * 255) << 24 | color));
-	}
+    @Override
+    @SideOnly(Side.CLIENT)
+    protected void drawContents(RenderState renderState, float partialTicks) {
+        renderState.setupTexturedRender();
+        renderState.setColor(color, alpha);
 
-	@Override
-	public DrawableType getTypeEnum() {
-		return DrawableType.TEXT;
-	}
+        FontRenderer fontRenderer = FMLClientHandler.instance()
+            .getClient().fontRenderer;
+        GL11.glScalef(scale, scale, scale);
+        fontRenderer.drawString(text, 0, 0, ((int) (alpha * 255) << 24 | color));
+    }
 
-	@Override
-	public boolean isVisible() {
-		return alpha > 0;
-	}
+    @Override
+    public DrawableType getTypeEnum() {
+        return DrawableType.TEXT;
+    }
 
-	@Override
-	public void onUpdate() {
-		super.onUpdate();
+    @Override
+    public boolean isVisible() {
+        return alpha > 0;
+    }
 
-		updateBoundingBox();
-	}
+    @Override
+    public void onUpdate() {
+        super.onUpdate();
 
-	private void updateBoundingBox() {
-		final int height = Math.round(8 * scale);
+        updateBoundingBox();
+    }
 
-		final int width;
-		if (Strings.isNullOrEmpty(text)) {
-			width = 0;
-		} else {
-			FontRenderer fontRenderer = FMLClientHandler.instance().getClient().fontRenderer;
-			width = Math.round(fontRenderer.getStringWidth(text) * scale);
-		}
+    private void updateBoundingBox() {
+        final int height = Math.round(8 * scale);
 
-		setBoundingBox(Box2d.fromOriginAndSize(x, y, width, height));
-	}
+        final int width;
+        if (Strings.isNullOrEmpty(text)) {
+            width = 0;
+        } else {
+            FontRenderer fontRenderer = FMLClientHandler.instance()
+                .getClient().fontRenderer;
+            width = Math.round(fontRenderer.getStringWidth(text) * scale);
+        }
+
+        setBoundingBox(Box2d.fromOriginAndSize(x, y, width, height));
+    }
 }

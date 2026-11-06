@@ -1,12 +1,14 @@
 package openperipheral.addons.glasses;
 
 public enum SurfaceType {
-	GLOBAL(Boolean.FALSE), PRIVATE(Boolean.TRUE);
 
-	// legacy replacement for 'isPrivate'
-	public final Object scriptValue;
+    GLOBAL(Boolean.FALSE),
+    PRIVATE(Boolean.TRUE);
 
-	private SurfaceType(Object scriptValue) {
-		this.scriptValue = scriptValue;
-	}
+    // legacy replacement for 'isPrivate'
+    public final Object scriptValue;
+
+    private SurfaceType(Object scriptValue) {
+        this.scriptValue = scriptValue;
+    }
 }

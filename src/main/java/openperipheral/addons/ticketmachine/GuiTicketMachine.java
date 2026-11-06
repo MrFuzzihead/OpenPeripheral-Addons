@@ -6,15 +6,15 @@ import openmods.gui.component.GuiComponentPanel;
 
 public class GuiTicketMachine extends BaseGuiContainer<ContainerTicketMachine> {
 
-	public GuiTicketMachine(ContainerTicketMachine container) {
-		super(container, 176, 167, "openperipheral.gui.ticketmachine");
-	}
+    public GuiTicketMachine(ContainerTicketMachine container) {
+        super(container, 176, 167, "openperipheral.gui.ticketmachine");
+    }
 
-	@Override
-	protected BaseComposite createRoot() {
-		GuiComponentPanel panel = new GuiComponentPanel(0, 0, xSize, ySize, getContainer());
-		panel.setSlotRenderer(2, GuiComponentPanel.bigSlot);
-		return panel;
-	}
+    @Override
+    protected BaseComposite createRoot() {
+        GuiComponentPanel panel = new GuiComponentPanel(0, 0, xSize, ySize, getContainer());
+        panel.setSlotRenderer(2, GuiComponentPanel.bigSlot);
+        return panel;
+    }
 
 }
