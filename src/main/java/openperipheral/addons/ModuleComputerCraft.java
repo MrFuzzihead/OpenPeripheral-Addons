@@ -68,10 +68,6 @@ public class ModuleComputerCraft {
         ComputerCraftAPI.registerTurtleUpgrade(narcissiticUpgrade);
     }
 
-    public static void init() {
-        if (Blocks.peripheralProxy != null) TileEntityPeripheralProxy.initAccess();
-    }
-
     public static void registerRecipes(List<IRecipe> recipeList) {
         if (Blocks.peripheralProxy != null) {
             recipeList.add(

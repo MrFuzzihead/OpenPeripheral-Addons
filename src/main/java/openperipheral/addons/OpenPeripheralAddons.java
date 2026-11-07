@@ -69,7 +69,7 @@ import openperipheral.addons.sensors.TileEntitySensor;
     modid = OpenPeripheralAddons.MODID,
     name = "OpenPeripheralAddons",
     version = Tags.VERSION,
-    dependencies = "required-after:OpenMods@[0.10.15,);required-after:OpenPeripheralApi;after:ComputerCraft@[3.2.0,)")
+    dependencies = "required-after:OpenMods@[0.10.15,);required-after:OpenPeripheralApi;after:ComputerCraft@[3.3.0,)")
 public class OpenPeripheralAddons {
 
     public static final String MODID = "OpenPeripheral";
@@ -224,7 +224,5 @@ public class OpenPeripheralAddons {
 
         OpcAccess.itemStackMetaBuilder.register(new ItemTerminalMetaProvider());
         OpcAccess.itemStackMetaBuilder.register(new NbtTerminalMetaProvider());
-
-        if (Loader.isModLoaded(Mods.COMPUTERCRAFT)) ModuleComputerCraft.init();
     }
 }

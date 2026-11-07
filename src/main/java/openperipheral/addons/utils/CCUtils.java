@@ -3,59 +3,47 @@ package openperipheral.addons.utils;
 import java.util.List;
 
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.world.World;
 
-import cpw.mods.fml.common.registry.GameRegistry;
+import dan200.computercraft.ComputerCraft;
 import dan200.computercraft.api.turtle.ITurtleAccess;
 import dan200.computercraft.api.turtle.ITurtleUpgrade;
-import openmods.Mods;
+import dan200.computercraft.shared.computer.core.ComputerFamily;
+import dan200.computercraft.shared.turtle.items.TurtleItemFactory;
 
 public final class CCUtils {
 
     private static final int NUMBER_OF_TURTLE_TOOLS = 7;
 
+    private static final ComputerFamily[] TURTLE_FAMILIES = { ComputerFamily.Normal, ComputerFamily.Advanced };
+
     public static Object[] wrap(Object... args) {
         return args;
     }
 
-    public static ItemStack getExpandedTurtleItemStack() {
-        return GameRegistry.findItemStack(Mods.COMPUTERCRAFT, "CC-TurtleExpanded", 1);
-    }
-
-    public static ItemStack getAdvancedTurtleItemStack() {
-        return GameRegistry.findItemStack(Mods.COMPUTERCRAFT, "CC-TurtleAdvanced", 1);
-    }
-
-    public static void createTurtleItemStack(List<ItemStack> result, boolean isAdvanced, Short left, Short right) {
-        ItemStack turtle = isAdvanced ? getAdvancedTurtleItemStack() : getExpandedTurtleItemStack();
-
-        if (turtle == null) return;
-
-        NBTTagCompound tag = turtle.getTagCompound();
-        if (tag == null) {
-            tag = new NBTTagCompound();
-            turtle.setTagCompound(tag);
-        }
-
-        if (left != null) tag.setShort("leftUpgrade", left);
-
-        if (right != null) tag.setShort("rightUpgrade", right);
-
-        result.add(turtle);
-    }
-
-    private static void addUpgradedTurtles(List<ItemStack> result, ITurtleUpgrade upgrade, boolean isAdvanced) {
-        short upgradeId = (short) upgrade.getUpgradeID();
-        createTurtleItemStack(result, isAdvanced, upgradeId, null);
-        for (int i = 1; i < NUMBER_OF_TURTLE_TOOLS; i++)
-            createTurtleItemStack(result, isAdvanced, upgradeId, (short) i);
+    /**
+     * Adds one turtle stack with the given upgrades equipped.
+     * <p>
+     * {@link TurtleItemFactory} is ComputerCraft's own way of building these stacks, used by its creative tab. It
+     * encodes the upgrade ids in the exact tags the turtle item reads back, so this addon no longer has to write
+     * {@code leftUpgrade}/{@code rightUpgrade} itself or look the turtle items up by their registry names.
+     */
+    private static void addTurtleVariant(List<ItemStack> result, ComputerFamily family, ITurtleUpgrade leftUpgrade,
+        ITurtleUpgrade rightUpgrade) {
+        final ItemStack turtle = TurtleItemFactory
+            .create(-1, null, null, family, leftUpgrade, rightUpgrade, 0, null, null);
+        if (turtle != null) result.add(turtle);
     }
 
     public static void addUpgradedTurtles(List<ItemStack> result, ITurtleUpgrade upgrade) {
-        addUpgradedTurtles(result, upgrade, false);
-        addUpgradedTurtles(result, upgrade, true);
+        for (ComputerFamily family : TURTLE_FAMILIES) {
+            addTurtleVariant(result, family, upgrade, null);
+
+            for (int toolId = 1; toolId < NUMBER_OF_TURTLE_TOOLS; toolId++) {
+                addTurtleVariant(result, family, upgrade, ComputerCraft.getTurtleUpgrade(toolId));
+            }
+        }
     }
 
     public static boolean isTurtleValid(ITurtleAccess access) {
