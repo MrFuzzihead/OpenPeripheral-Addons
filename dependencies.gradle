@@ -36,12 +36,12 @@
 dependencies {
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:NotEnoughItems:2.7.69-GTNH:dev")
 
-	api("com.github.MrFuzzihead:Computercraft-Legacy:3.2.0:dev")
+	api("com.github.MrFuzzihead:Computercraft-Legacy:3.3.0:dev")
 	api("com.github.GTNewHorizons:OpenModsLib:0.10.15:dev")
     // Exclude transitive CC: OpenPeripheral's .module metadata resolves it to the
     // SRG (reobf) jar, which crashes in the MCP dev env (NoSuchFieldError:
     // Material.field_151576_e). The direct :dev dependency above provides the MCP jar.
-    api("com.github.MrFuzzihead:OpenPeripheral:2.0.0:dev") {
+    api("com.github.MrFuzzihead:OpenPeripheral:2.1.0:dev") {
         exclude(group: "com.github.MrFuzzihead", module: "Computercraft-Legacy")
     }
 }
