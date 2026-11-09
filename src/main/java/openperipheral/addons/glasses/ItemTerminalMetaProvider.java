@@ -1,10 +1,6 @@
 package openperipheral.addons.glasses;
 
-import java.util.Map;
-
 import net.minecraft.item.ItemStack;
-
-import com.google.common.collect.Maps;
 
 import openperipheral.addons.api.ITerminalItem;
 import openperipheral.api.helpers.ItemStackMetaProviderSimple;
@@ -18,9 +14,6 @@ public class ItemTerminalMetaProvider extends ItemStackMetaProviderSimple<ITermi
 
     @Override
     public Object getMeta(ITerminalItem target, ItemStack stack) {
-        Map<String, Object> results = Maps.newHashMap();
-        final Long terminalGuid = target.getTerminalGuid(stack);
-        if (terminalGuid != null) results.put("bridge_name", TerminalUtils.formatTerminalId(terminalGuid));
-        return results;
+        return TerminalUtils.createBridgeMeta(target.getTerminalGuid(stack));
     }
 }

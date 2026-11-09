@@ -1,12 +1,9 @@
 package openperipheral.addons.glasses;
 
-import java.util.Map;
-
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.Maps;
 
 import openperipheral.api.meta.IItemStackCustomMetaProvider;
 
@@ -29,10 +26,8 @@ public class NbtTerminalMetaProvider implements IItemStackCustomMetaProvider<Ite
 
     @Override
     public Object getMeta(Item target, ItemStack stack) {
-        Map<String, Object> results = Maps.newHashMap();
         final Optional<Long> terminalGuid = NbtGuidProviders.getTerminalGuid(stack);
-        if (terminalGuid.isPresent()) results.put("bridge_name", TerminalUtils.formatTerminalId(terminalGuid.get()));
-        return results;
+        return TerminalUtils.createBridgeMeta(terminalGuid.orNull());
     }
 
 }

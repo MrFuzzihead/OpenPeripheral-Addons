@@ -1,6 +1,7 @@
 package openperipheral.addons.glasses;
 
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 
 import net.minecraft.entity.player.EntityPlayer;
@@ -10,6 +11,8 @@ import net.minecraft.nbt.NBTBase.NBTPrimitive;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagLong;
 import net.minecraft.nbt.NBTTagString;
+
+import com.google.common.collect.Maps;
 
 import openmods.utils.StringUtils;
 
@@ -36,6 +39,16 @@ public class TerminalUtils {
     public static String formatTerminalId(long terminalId) {
         return Long.toString(terminalId, 36)
             .toUpperCase();
+    }
+
+    /**
+     * Builds the bridge-name metadata shared by the item and NBT terminal metadata providers. Returning an empty map
+     * for an unbound terminal keeps the Lua table shape stable.
+     */
+    public static Map<String, Object> createBridgeMeta(Long terminalId) {
+        final Map<String, Object> result = Maps.newHashMap();
+        if (terminalId != null) result.put("bridge_name", formatTerminalId(terminalId));
+        return result;
     }
 
     static long generateGuid() {

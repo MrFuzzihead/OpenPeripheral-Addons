@@ -317,11 +317,9 @@ actually changes.
 | `TerminalEvent.StructureReset` / `StructureData` family | Registered and implemented but never sent or handled. Only drawable data is produced. Remove or document as legacy. |
 | `TerminalManagerClient.DrawableHitInfo.z` | Stored but never read. |
 | `BlockSensor.getRenderType()` | Identical override of `BlockOP.getRenderType()`. |
-| `TileEntitySensor` `isTurtle()` | Only implementations, no caller in this addon. Keep as public interface contract or remove. |
-| `addons.api.ApiHolder` | Used only as the annotation marker passed to `ApiFactory`; no internal fields use it. It is a public extension point, keep but document. |
-| `TerminalRegisterEvent` | No producer in this repo; the handler is an extension hook for other mods. Document or add an internal producer. |
-| `ItemTerminalMetaProvider` / `NbtTerminalMetaProvider` | Both create a one-entry map; could share a helper. |
-| `GuiUtils.GuiElements` | Nested in a client-only class (`GuiIngameForge`); move the enum to a common class so the server-side event/control code never risks loading client classes. |
+| `TileEntitySensor` `isTurtle()` | Kept as a documented public interface contract; the built-in adapter does not currently branch on it. |
+| `addons.api.ApiHolder` | Kept as the documented third-party API injection marker. |
+| `TerminalRegisterEvent` | Documented as an external extension hook; no internal producer by design. |
 
 Other refactors:
 
@@ -420,10 +418,10 @@ to tolerate minor refactors without weakening the meaningful coverage requiremen
 These are lower-risk refactors that would add churn without changing current behaviour:
 
 - Per-tick NBT lookups in `TerminalManagerServer`/`fmlListener`; measure before caching.
-- `TerminalRegisterEvent` remains an external extension hook (no internal producer).
-- `ISensorEnvironment.isTurtle()` remains part of the public interface.
-- `addons.api.ApiHolder` remains as the public marker annotation for third-party fields.
-- Ticket creation now has unit coverage for the ticket stack and the paper/ink inventory flow (mocked inventory); the game test still exercises the real Railcraft item when installed.
+- `TerminalRegisterEvent` remains a documented external extension hook (no internal producer).
+- `ISensorEnvironment.isTurtle()` remains a documented part of the public interface.
+- `addons.api.ApiHolder` remains a documented public marker annotation for third-party fields.
+- Ticket creation has unit coverage for the ticket stack and paper/ink inventory flow; the game test covers the real Railcraft item when installed.
 
 ---
 
