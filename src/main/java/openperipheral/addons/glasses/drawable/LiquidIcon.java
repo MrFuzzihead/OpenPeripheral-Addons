@@ -107,6 +107,7 @@ public class LiquidIcon extends Drawable {
     public void onUpdate() {
         super.onUpdate();
 
+        alpha = Math.max(0, Math.min(1, alpha));
         fluidIcon = findFluidIcon(fluid);
         if (fluidIcon != null) {
             iconWidth = fluidIcon.getIconWidth();
@@ -116,9 +117,26 @@ public class LiquidIcon extends Drawable {
         setBoundingBox(Box2d.fromOriginAndSize(x, y, width, height));
     }
 
+    @FunctionalInterface
+    interface FluidIconResolver {
+
+        IIcon resolve(String fluid);
+    }
+
+    private static final FluidIconResolver DEFAULT_FLUID_ICONS = new FluidIconResolver() {
+
+        @Override
+        public IIcon resolve(String fluid) {
+            final Fluid drawLiquid = FluidRegistry.getFluid(fluid);
+            return drawLiquid != null ? drawLiquid.getFlowingIcon() : null;
+        }
+    };
+
+    // Test seam: FluidRegistry needs a running Forge environment to initialise.
+    static FluidIconResolver fluidIcons = DEFAULT_FLUID_ICONS;
+
     private static IIcon findFluidIcon(String fluid) {
-        Fluid drawLiquid = FluidRegistry.getFluid(fluid);
-        return drawLiquid != null ? drawLiquid.getFlowingIcon() : null;
+        return fluidIcons.resolve(fluid);
     }
 
 }

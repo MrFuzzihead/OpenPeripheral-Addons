@@ -14,13 +14,13 @@ import dan200.computercraft.shared.turtle.items.TurtleItemFactory;
 
 public final class CCUtils {
 
-    private static final int NUMBER_OF_TURTLE_TOOLS = 7;
+    /**
+     * CC 3.3.x upgrade IDs for the vanilla diamond tools. IDs 1 and 2 are the modem and crafting table, so the old
+     * 1..6 loop produced turtles with non-tool upgrades and never offered the hoe (id 7).
+     */
+    private static final int[] TURTLE_TOOL_IDS = { 3, 4, 5, 6, 7 };
 
     private static final ComputerFamily[] TURTLE_FAMILIES = { ComputerFamily.Normal, ComputerFamily.Advanced };
-
-    public static Object[] wrap(Object... args) {
-        return args;
-    }
 
     /**
      * Adds one turtle stack with the given upgrades equipped.
@@ -40,8 +40,9 @@ public final class CCUtils {
         for (ComputerFamily family : TURTLE_FAMILIES) {
             addTurtleVariant(result, family, upgrade, null);
 
-            for (int toolId = 1; toolId < NUMBER_OF_TURTLE_TOOLS; toolId++) {
-                addTurtleVariant(result, family, upgrade, ComputerCraft.getTurtleUpgrade(toolId));
+            for (int toolId : TURTLE_TOOL_IDS) {
+                final ITurtleUpgrade tool = ComputerCraft.getTurtleUpgrade(toolId);
+                if (tool != null) addTurtleVariant(result, family, upgrade, tool);
             }
         }
     }

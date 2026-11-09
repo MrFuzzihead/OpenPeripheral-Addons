@@ -22,10 +22,26 @@ import openperipheral.addons.glasses.GlassesEvent.GlassesMouseWheelEvent;
 import openperipheral.addons.glasses.GlassesEvent.GlassesSignalCaptureEvent;
 import openperipheral.addons.glasses.client.TerminalManagerClient;
 import openperipheral.addons.glasses.client.TerminalManagerClient.DrawableHitInfo;
+import openperipheral.addons.utils.GuiElements;
 import openperipheral.addons.utils.GuiUtils;
-import openperipheral.addons.utils.GuiUtils.GuiElements;
 
 public class GuiCapture extends GuiScreen {
+
+    interface EventSink {
+
+        void send(NetworkEvent event);
+    }
+
+    private static final EventSink DEFAULT_EVENT_SINK = new EventSink() {
+
+        @Override
+        public void send(NetworkEvent event) {
+            event.sendToServer();
+        }
+    };
+
+    // Test seam: production always uses DEFAULT_EVENT_SINK; tests inject a recording sink instead of FML networking.
+    EventSink eventSink = DEFAULT_EVENT_SINK;
 
     private int backgroundColor = 0x2A00FF00;
     private final long guid;
@@ -73,12 +89,12 @@ public class GuiCapture extends GuiScreen {
 
             if (button != -1) {
                 final boolean state = Mouse.getEventButtonState();
-                createMouseButtonEvent(button, state, hit).sendToServer();
+                eventSink.send(createMouseButtonEvent(button, state, hit));
                 final boolean draggingStarted = updateButtonCounter(state);
                 if (draggingStarted) resetDraggingLimiter(x, y);
             }
 
-            if (wheel != 0) createMouseWheelEvent(wheel, hit).sendToServer();
+            if (wheel != 0) eventSink.send(createMouseWheelEvent(wheel, hit));
         }
 
         {
@@ -86,7 +102,7 @@ public class GuiCapture extends GuiScreen {
             final float dy = (y - lastDragY);
 
             if (canSendDragEvent(dx, dy)) {
-                createDragEvent(dx, dy).sendToServer();
+                eventSink.send(createDragEvent(dx, dy));
                 resetDraggingLimiter(x, y);
             }
         }
@@ -121,7 +137,7 @@ public class GuiCapture extends GuiScreen {
     @Override
     public void updateScreen() {
         super.updateScreen();
-        --dragInterval;
+        if (dragInterval > Integer.MIN_VALUE) --dragInterval;
     }
 
     private NetworkEvent createDragEvent(float dx, float dy) {
@@ -152,9 +168,9 @@ public class GuiCapture extends GuiScreen {
                 final char ch = sanitizeKeyChar(Keyboard.getEventCharacter());
 
                 final boolean isRepeat = Keyboard.isRepeatEvent();
-                new GlassesKeyDownEvent(guid, ch, key, isRepeat).sendToServer();
+                eventSink.send(new GlassesKeyDownEvent(guid, ch, key, isRepeat));
             } else {
-                new GlassesKeyUpEvent(guid, key).sendToServer();
+                eventSink.send(new GlassesKeyUpEvent(guid, key));
             }
         }
 
@@ -179,13 +195,13 @@ public class GuiCapture extends GuiScreen {
 
     @Override
     public void initGui() {
-        new GlassesSignalCaptureEvent(guid, true).sendToServer();
+        eventSink.send(new GlassesSignalCaptureEvent(guid, true));
         Keyboard.enableRepeatEvents(false);
     }
 
     @Override
     public void onGuiClosed() {
-        new GlassesSignalCaptureEvent(guid, false).sendToServer();
+        eventSink.send(new GlassesSignalCaptureEvent(guid, false));
         Keyboard.enableRepeatEvents(false);
         GuiUtils.loadGuiElementsState(originalState);
     }

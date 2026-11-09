@@ -14,6 +14,7 @@ import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.Mod.Instance;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLLoadCompleteEvent;
 import cpw.mods.fml.common.event.FMLMissingMappingsEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.network.NetworkRegistry;
@@ -34,26 +35,13 @@ import openmods.network.event.NetworkEventManager;
 import openperipheral.addons.api.ApiHolder;
 import openperipheral.addons.api.IApiInterface;
 import openperipheral.addons.glasses.BlockGlassesBridge;
-import openperipheral.addons.glasses.GlassesEvent.GlassesChangeBackgroundEvent;
-import openperipheral.addons.glasses.GlassesEvent.GlassesComponentMouseButtonEvent;
-import openperipheral.addons.glasses.GlassesEvent.GlassesComponentMouseWheelEvent;
-import openperipheral.addons.glasses.GlassesEvent.GlassesKeyDownEvent;
-import openperipheral.addons.glasses.GlassesEvent.GlassesKeyUpEvent;
-import openperipheral.addons.glasses.GlassesEvent.GlassesMouseButtonEvent;
-import openperipheral.addons.glasses.GlassesEvent.GlassesMouseDragEvent;
-import openperipheral.addons.glasses.GlassesEvent.GlassesMouseWheelEvent;
-import openperipheral.addons.glasses.GlassesEvent.GlassesSetDragParamsEvent;
-import openperipheral.addons.glasses.GlassesEvent.GlassesSetGuiVisibilityEvent;
-import openperipheral.addons.glasses.GlassesEvent.GlassesSetKeyRepeatEvent;
-import openperipheral.addons.glasses.GlassesEvent.GlassesSignalCaptureEvent;
-import openperipheral.addons.glasses.GlassesEvent.GlassesStopCaptureEvent;
+import openperipheral.addons.glasses.GlassesNetworkEvents;
 import openperipheral.addons.glasses.ItemGlasses;
 import openperipheral.addons.glasses.ItemGlassesBridge;
 import openperipheral.addons.glasses.ItemKeyboard;
 import openperipheral.addons.glasses.ItemTerminalMetaProvider;
 import openperipheral.addons.glasses.NbtGuidProviders;
 import openperipheral.addons.glasses.NbtTerminalMetaProvider;
-import openperipheral.addons.glasses.TerminalEvent;
 import openperipheral.addons.glasses.TerminalIdAccess;
 import openperipheral.addons.glasses.TileEntityGlassesBridge;
 import openperipheral.addons.glasses.server.TerminalManagerServer;
@@ -69,7 +57,7 @@ import openperipheral.addons.sensors.TileEntitySensor;
     modid = OpenPeripheralAddons.MODID,
     name = "OpenPeripheralAddons",
     version = Tags.VERSION,
-    dependencies = "required-after:OpenMods@[0.10.15,);required-after:OpenPeripheralApi;after:ComputerCraft@[3.3.0,)")
+    dependencies = "required-after:OpenMods@[0.10.15,);required-after:OpenPeripheralApi;after:ComputerCraft@[3.3.1,)")
 public class OpenPeripheralAddons {
 
     public static final String MODID = "OpenPeripheral";
@@ -153,33 +141,7 @@ public class OpenPeripheralAddons {
         Recipes.register();
         MetasGeneric.registerItems();
 
-        NetworkEventManager.INSTANCE.startRegistration()
-            .register(TerminalEvent.PrivateDrawableReset.class)
-            .register(TerminalEvent.PublicDrawableReset.class)
-            .register(TerminalEvent.PrivateStructureReset.class)
-            .register(TerminalEvent.PublicStructureReset.class)
-
-            .register(TerminalEvent.PrivateClear.class)
-            .register(TerminalEvent.PublicClear.class)
-
-            .register(TerminalEvent.PrivateDrawableData.class)
-            .register(TerminalEvent.PublicDrawableData.class)
-            .register(TerminalEvent.PrivateStructureData.class)
-            .register(TerminalEvent.PublicStructureData.class)
-
-            .register(GlassesSignalCaptureEvent.class)
-            .register(GlassesStopCaptureEvent.class)
-            .register(GlassesMouseWheelEvent.class)
-            .register(GlassesMouseButtonEvent.class)
-            .register(GlassesComponentMouseWheelEvent.class)
-            .register(GlassesComponentMouseButtonEvent.class)
-            .register(GlassesMouseDragEvent.class)
-            .register(GlassesKeyDownEvent.class)
-            .register(GlassesKeyUpEvent.class)
-            .register(GlassesChangeBackgroundEvent.class)
-            .register(GlassesSetDragParamsEvent.class)
-            .register(GlassesSetKeyRepeatEvent.class)
-            .register(GlassesSetGuiVisibilityEvent.class);
+        GlassesNetworkEvents.registerAll(NetworkEventManager.INSTANCE.startRegistration());
 
         Items.generic.initRecipes();
 
@@ -224,5 +186,10 @@ public class OpenPeripheralAddons {
 
         OpcAccess.itemStackMetaBuilder.register(new ItemTerminalMetaProvider());
         OpcAccess.itemStackMetaBuilder.register(new NbtTerminalMetaProvider());
+    }
+
+    @EventHandler
+    public void loadComplete(FMLLoadCompleteEvent evt) {
+        SmokeTestHook.scheduleExitIfRequested();
     }
 }

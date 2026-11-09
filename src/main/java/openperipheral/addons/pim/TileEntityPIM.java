@@ -162,7 +162,11 @@ public class TileEntityPIM extends OpenTileEntity implements IInventory, IAttach
     public void updateEntity() {
         if (!worldObj.isRemote) {
             EntityPlayer player = getPlayer();
-            if (player != null && !isPlayerValid(player)) setPlayer(null);
+            if (player == null || !isPlayerValid(player)) {
+                // The weak reference may already be cleared on logout/chunk unload; the metadata is still set, so
+                // clear it here instead of leaving the block looking occupied forever.
+                if (player != null || hasPlayer()) setPlayer(null);
+            }
         }
     }
 }

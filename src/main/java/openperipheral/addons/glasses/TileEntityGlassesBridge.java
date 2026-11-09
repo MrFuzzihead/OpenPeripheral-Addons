@@ -26,7 +26,6 @@ import openmods.api.IPlaceAwareTile;
 import openmods.include.IncludeInterface;
 import openmods.include.IncludeOverride;
 import openmods.network.event.NetworkEventManager;
-import openmods.network.senders.ITargetedPacketSender;
 import openmods.tileentity.OpenTileEntity;
 import openmods.utils.ItemUtils;
 import openperipheral.addons.glasses.GlassesEvent.GlassesClientEvent;
@@ -66,8 +65,8 @@ public class TileEntityGlassesBridge extends OpenTileEntity
 
     private static class PlayerInfo {
 
-        public final GameProfile profile;
-        public final WeakReference<EntityPlayerMP> player;
+        public GameProfile profile;
+        public WeakReference<EntityPlayerMP> player;
         public final SurfaceServer surface;
 
         public PlayerInfo(long guid, EntityPlayerMP player) {
@@ -75,7 +74,42 @@ public class TileEntityGlassesBridge extends OpenTileEntity
             this.profile = player.getGameProfile();
             this.surface = SurfaceServer.createPrivateSurface(guid);
         }
+
+        public void updatePlayer(EntityPlayerMP player) {
+            this.player = new WeakReference<EntityPlayerMP>(player);
+            this.profile = player.getGameProfile();
+        }
     }
+
+    interface PacketSink {
+
+        List<Object> serialize(TerminalEvent.Data event);
+
+        void sendMessages(List<Object> packets, EntityPlayer player);
+
+        void sendToPlayer(TerminalEvent.Data event, EntityPlayer player);
+    }
+
+    private static final PacketSink DEFAULT_PACKET_SINK = new PacketSink() {
+
+        @Override
+        public List<Object> serialize(TerminalEvent.Data event) {
+            return event.serialize();
+        }
+
+        @Override
+        public void sendMessages(List<Object> packets, EntityPlayer player) {
+            NetworkEventManager.INSTANCE.dispatcher().senders.player.sendMessages(packets, player);
+        }
+
+        @Override
+        public void sendToPlayer(TerminalEvent.Data event, EntityPlayer player) {
+            event.sendToPlayer(player);
+        }
+    };
+
+    // Test seam: production always uses DEFAULT_PACKET_SINK.
+    PacketSink packetSink = DEFAULT_PACKET_SINK;
 
     private final Map<UUID, PlayerInfo> knownPlayersByUUID = Maps.newHashMap();
     private final Map<String, PlayerInfo> knownPlayersByName = Maps.newHashMap();
@@ -89,12 +123,25 @@ public class TileEntityGlassesBridge extends OpenTileEntity
 
     @IncludeInterface(IContainer.class)
     private IContainer<Drawable> getDrawablesContainer() {
-        return globalSurface.drawablesContainer;
+        return ensureGlobalSurface().drawablesContainer;
     }
 
     @IncludeInterface(IDrawableFactory.class)
     private IDrawableFactory getDrawablesFactory() {
-        return globalSurface.drawablesFactory;
+        return ensureGlobalSurface().drawablesFactory;
+    }
+
+    /**
+     * The global surface is normally created on the first server tick, but Lua and the include-interface proxies can
+     * access the bridge earlier. Keep the lazy creation in one place so no entry point can observe a null surface.
+     */
+    private SurfaceServer ensureGlobalSurface() {
+        if (globalSurface == null) {
+            final long guid = getOrCreateGuid();
+            globalSurface = SurfaceServer.createPublicSurface(guid);
+            TerminalManagerServer.instance.registerBridge(guid, this);
+        }
+        return globalSurface;
     }
 
     public TileEntityGlassesBridge() {}
@@ -112,7 +159,7 @@ public class TileEntityGlassesBridge extends OpenTileEntity
         }
     }
 
-    public long getOrCreateGuid() {
+    public synchronized long getOrCreateGuid() {
         if (this.guid.isPresent()) return this.guid.get();
 
         final long newGuid = TerminalUtils.generateGuid();
@@ -121,23 +168,31 @@ public class TileEntityGlassesBridge extends OpenTileEntity
     }
 
     public void registerTerminal(EntityPlayerMP player) {
-        if (!knownPlayersByUUID.containsKey(
-            player.getGameProfile()
-                .getId())) {
-            final PlayerInfo playerInfo = new PlayerInfo(getOrCreateGuid(), player);
-            final GameProfile gameProfile = player.getGameProfile();
+        if (player == null) return;
 
-            knownPlayersByUUID.put(gameProfile.getId(), playerInfo);
+        final GameProfile gameProfile = player.getGameProfile();
+        final UUID uuid = gameProfile.getId();
+        PlayerInfo info = knownPlayersByUUID.get(uuid);
+
+        if (info == null) {
+            info = new PlayerInfo(getOrCreateGuid(), player);
+            knownPlayersByUUID.put(uuid, info);
             rebuildPlayerNamesMap();
-            queueEvent(EVENT_PLAYER_ATTACH, player);
-
-            sentStoredFullDataToPlayer(player);
+            queueEvent(EVENT_PLAYER_ATTACH, info.profile);
+        } else if (info.player.get() != player) {
+            // Respawn creates a new EntityPlayerMP with the same profile. Reuse the private surface, but point it at
+            // the new entity so surface updates and capture controls keep working.
+            info.updatePlayer(player);
+            rebuildPlayerNamesMap();
+        } else {
+            return;
         }
+
+        sendStoredFullDataToPlayer(player);
     }
 
-    private void sentStoredFullDataToPlayer(EntityPlayer player) {
-        if (globalFullDataPackets != null)
-            NetworkEventManager.INSTANCE.dispatcher().senders.player.sendMessages(globalFullDataPackets, player);
+    private void sendStoredFullDataToPlayer(EntityPlayer player) {
+        if (globalFullDataPackets != null) packetSink.sendMessages(globalFullDataPackets, player);
     }
 
     private static interface IEventArgsSource {
@@ -145,11 +200,10 @@ public class TileEntityGlassesBridge extends OpenTileEntity
         public Object[] getArgs(IArchitectureAccess access);
     }
 
-    private void queueEvent(String event, EntityPlayer user, IEventArgsSource source) {
-        final GameProfile gameProfile = user.getGameProfile();
-        final UUID userId = gameProfile.getId();
+    private void queueEvent(String event, GameProfile user, IEventArgsSource source) {
+        final UUID userId = user != null ? user.getId() : null;
         final String idString = userId != null ? userId.toString() : null;
-        final String userName = gameProfile.getName();
+        final String userName = user != null ? user.getName() : null;
 
         for (IArchitectureAccess computer : computers) {
             final Object[] extra = source.getArgs(computer);
@@ -163,7 +217,7 @@ public class TileEntityGlassesBridge extends OpenTileEntity
         }
     }
 
-    private void queueEvent(String event, EntityPlayer user, final Object... args) {
+    private void queueEvent(String event, GameProfile user, final Object... args) {
         queueEvent(event, user, new IEventArgsSource() {
 
             @Override
@@ -174,7 +228,7 @@ public class TileEntityGlassesBridge extends OpenTileEntity
     }
 
     public void onChatCommand(String event, String content, EntityPlayer player) {
-        queueEvent(event, player, content);
+        if (player != null) queueEvent(event, player.getGameProfile(), content);
     }
 
     @Override
@@ -182,10 +236,7 @@ public class TileEntityGlassesBridge extends OpenTileEntity
         super.updateEntity();
         if (worldObj.isRemote) return;
 
-        final long guid = getOrCreateGuid();
-
-        if (globalSurface == null) globalSurface = SurfaceServer.createPublicSurface(guid);
-        TerminalManagerServer.instance.registerBridge(guid, this);
+        ensureGlobalSurface();
 
         boolean playersRemoved = false;
         Iterator<PlayerInfo> it = knownPlayersByUUID.values()
@@ -195,9 +246,12 @@ public class TileEntityGlassesBridge extends OpenTileEntity
             final EntityPlayerMP player = info.player.get();
 
             if (!isPlayerValid(player)) {
-                queueEvent(EVENT_PLAYER_DETACH, player);
-                sendClearPacketToPlayer(player, globalSurface);
-                sendClearPacketToPlayer(player, info.surface);
+                // The entity may already be gone (logout/GC), so the stored profile is the only reliable source here.
+                queueEvent(EVENT_PLAYER_DETACH, info.profile);
+                if (player != null) {
+                    sendClearPacketToPlayer(player, ensureGlobalSurface());
+                    sendClearPacketToPlayer(player, info.surface);
+                }
                 it.remove();
                 playersRemoved = true;
             }
@@ -268,6 +322,13 @@ public class TileEntityGlassesBridge extends OpenTileEntity
     }
 
     @Override
+    public void invalidate() {
+        super.invalidate();
+        if (worldObj != null && !worldObj.isRemote && guid.isPresent())
+            TerminalManagerServer.instance.unregisterBridge(guid.get(), this);
+    }
+
+    @Override
     public void addComputer(IArchitectureAccess computer) {
         if (!computers.contains(computer)) {
             computers.add(computer);
@@ -280,7 +341,12 @@ public class TileEntityGlassesBridge extends OpenTileEntity
     }
 
     public void handleUserEvent(final GlassesClientEvent evt) {
-        queueEvent(evt.getEventName(), evt.sender, new IEventArgsSource() {
+        if (evt.sender == null) return;
+
+        final GameProfile profile = evt.sender.getGameProfile();
+        if (profile == null) return;
+
+        queueEvent(evt.getEventName(), profile, new IEventArgsSource() {
 
             @Override
             public Object[] getArgs(IArchitectureAccess access) {
@@ -290,13 +356,13 @@ public class TileEntityGlassesBridge extends OpenTileEntity
     }
 
     public SurfaceServer getSurface(String username) {
-        if (GLOBAL_FAKE_PLAYER_NAME.equals(username)) return globalSurface;
+        if (GLOBAL_FAKE_PLAYER_NAME.equals(username)) return ensureGlobalSurface();
         PlayerInfo info = knownPlayersByName.get(username);
         return info != null ? info.surface : null;
     }
 
     public SurfaceServer getSurface(UUID uuid) {
-        if (TerminalUtils.GLOBAL_SURFACE_UUID.equals(uuid)) return globalSurface;
+        if (TerminalUtils.GLOBAL_SURFACE_UUID.equals(uuid)) return ensureGlobalSurface();
         PlayerInfo info = knownPlayersByUUID.get(uuid);
         return info != null ? info.surface : null;
     }
@@ -304,49 +370,45 @@ public class TileEntityGlassesBridge extends OpenTileEntity
     // never, ever make this asynchronous
     @ScriptCallable(description = "Send updates to client. Without it changes won't be visible", name = "sync")
     public void syncContents() {
-        final DrawableContainerMaster drawables = globalSurface.drawablesContainer;
+        final DrawableContainerMaster drawables = ensureGlobalSurface().drawablesContainer;
         synchronized (drawables) {
             final boolean globalChanged = drawables.hasUpdates();
 
             if (globalChanged || globalFullDataPackets == null) {
                 final TerminalEvent.Data globalFullData = drawables.createFullDataEvent();
-                globalFullDataPackets = globalFullData.serialize();
+                globalFullDataPackets = packetSink.serialize(globalFullData);
             }
 
             List<Object> globalUpdateDataPackets = null;
 
             if (globalChanged) {
                 final TerminalEvent.Data globalDelta = drawables.createUpdateDataEvent();
-                globalUpdateDataPackets = globalDelta.serialize();
+                globalUpdateDataPackets = packetSink.serialize(globalDelta);
             }
-
-            final ITargetedPacketSender<EntityPlayer> playerSender = NetworkEventManager.INSTANCE
-                .dispatcher().senders.player;
 
             for (PlayerInfo info : knownPlayersByUUID.values()) {
                 final EntityPlayerMP player = info.player.get();
                 if (isPlayerValid(player)) {
-                    if (globalUpdateDataPackets != null) playerSender.sendMessages(globalUpdateDataPackets, player);
+                    if (globalUpdateDataPackets != null) packetSink.sendMessages(globalUpdateDataPackets, player);
                     sendPrivateUpdateToPlayer(player, info);
                 }
             }
         }
     }
 
-    private static void sendPrivateUpdateToPlayer(EntityPlayerMP player, PlayerInfo info) {
+    private void sendPrivateUpdateToPlayer(EntityPlayerMP player, PlayerInfo info) {
         final SurfaceServer privateSurface = info.surface;
         final DrawableContainerMaster drawables = privateSurface.drawablesContainer;
         synchronized (drawables) {
             if (drawables.hasUpdates()) {
                 final TerminalEvent.Data privateUpdateDataPackets = drawables.createUpdateDataEvent();
-                privateUpdateDataPackets.sendToPlayer(player);
+                packetSink.sendToPlayer(privateUpdateDataPackets, player);
             }
         }
     }
 
-    private static void sendFullDataPacketToPlayer(EntityPlayer player, final SurfaceServer surface) {
-        surface.drawablesContainer.createFullDataEvent()
-            .sendToPlayer(player);
+    private void sendFullDataPacketToPlayer(EntityPlayer player, final SurfaceServer surface) {
+        packetSink.sendToPlayer(surface.drawablesContainer.createFullDataEvent(), player);
     }
 
     private void sendPrivateFullDataToPlayer(EntityPlayer player) {
@@ -357,11 +419,11 @@ public class TileEntityGlassesBridge extends OpenTileEntity
     }
 
     public void handlePrivateDrawableResetRequest(TerminalEvent.PrivateDrawableReset evt) {
-        sendPrivateFullDataToPlayer(evt.sender);
+        if (evt.sender != null) sendPrivateFullDataToPlayer(evt.sender);
     }
 
     public void handlePublicDrawableResetRequest(TerminalEvent.PublicDrawableReset evt) {
-        sentStoredFullDataToPlayer(evt.sender);
+        if (evt.sender != null) sendStoredFullDataToPlayer(evt.sender);
     }
 
     @Asynchronous
@@ -384,9 +446,12 @@ public class TileEntityGlassesBridge extends OpenTileEntity
     @Override
     @IncludeOverride
     public void clear() {
-        globalSurface.drawablesContainer.clear();
+        ensureGlobalSurface().drawablesContainer.clear();
 
         for (PlayerInfo info : knownPlayersByUUID.values()) info.surface.drawablesContainer.clear();
+
+        // A player joining before the next sync must not receive the pre-clear snapshot.
+        globalFullDataPackets = null;
     }
 
     @Asynchronous
@@ -417,6 +482,9 @@ public class TileEntityGlassesBridge extends OpenTileEntity
         description = "Returns object used for controlling player capture mode")
     public GuiCaptureControl getCaptureControl(@Arg(name = "uuid") UUID uuid) {
         PlayerInfo info = knownPlayersByUUID.get(uuid);
-        return info != null ? new GuiCaptureControl(getOrCreateGuid(), info.player) : null;
+        if (info == null) return null;
+
+        final EntityPlayerMP player = info.player.get();
+        return player != null ? new GuiCaptureControl(getOrCreateGuid(), info.player) : null;
     }
 }

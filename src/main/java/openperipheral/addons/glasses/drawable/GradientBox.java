@@ -117,6 +117,9 @@ public class GradientBox extends Drawable {
     @Override
     public void onUpdate() {
         super.onUpdate();
+
+        opacity1 = Math.max(0, Math.min(1, opacity1));
+        opacity2 = Math.max(0, Math.min(1, opacity2));
         setBoundingBox(Box2d.fromOriginAndSize(x, y, width, height));
     }
 }

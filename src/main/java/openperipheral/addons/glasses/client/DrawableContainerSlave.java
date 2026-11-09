@@ -16,6 +16,9 @@ public abstract class DrawableContainerSlave extends StructuredDataSlave<Drawabl
 
         @Override
         public Drawable createContainer(int typeId) {
+            if (typeId < 0 || typeId >= DrawableType.TYPES.length)
+                throw new IllegalArgumentException("Unknown drawable type id " + typeId);
+
             final DrawableType type = DrawableType.TYPES[typeId];
             return type.create();
         }

@@ -49,8 +49,8 @@ public class BlockPIM extends BlockOP {
 
     @Override
     public void onEntityCollidedWithBlock(World world, int x, int y, int z, Entity entity) {
-        world.markBlockForUpdate(x, y, z);
         if (!world.isRemote && entity instanceof EntityPlayer) {
+            world.markBlockForUpdate(x, y, z);
             TileEntityPIM pi = getTileEntity(world, x, y, z, TileEntityPIM.class);
             if (pi != null) pi.trySetPlayer((EntityPlayer) entity);
         }

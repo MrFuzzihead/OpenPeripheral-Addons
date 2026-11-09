@@ -63,11 +63,15 @@ public abstract class Drawable extends StructuredObjectBase {
         @Override
         public void readFromStream(DataInput input) throws IOException {
             byte value = input.readByte();
-            screenVerticalAnchor = VerticalAlignment.VALUES[(value >> 0) & MASK];
-            screenHorizontalAnchor = HorizontalAlignment.VALUES[(value >> 2) & MASK];
+            screenVerticalAnchor = valueAt(VerticalAlignment.VALUES, (value >> 0) & MASK);
+            screenHorizontalAnchor = valueAt(HorizontalAlignment.VALUES, (value >> 2) & MASK);
 
-            objectVerticalAnchor = VerticalAlignment.VALUES[(value >> 4) & MASK];
-            objectHorizontalAnchor = HorizontalAlignment.VALUES[(value >> 6) & MASK];
+            objectVerticalAnchor = valueAt(VerticalAlignment.VALUES, (value >> 4) & MASK);
+            objectHorizontalAnchor = valueAt(HorizontalAlignment.VALUES, (value >> 6) & MASK);
+        }
+
+        private static <E> E valueAt(E[] values, int index) {
+            return index < values.length ? values[index] : values[0];
         }
 
         @Override

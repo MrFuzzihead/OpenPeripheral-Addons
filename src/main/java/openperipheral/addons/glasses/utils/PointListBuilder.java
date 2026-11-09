@@ -28,10 +28,14 @@ public class PointListBuilder implements IPointListBuilder<Point2d> {
 
     private final BoundingBoxBuilder bbBuilder = BoundingBoxBuilder.create();
 
+    private int pointCount;
+
     @Override
     public void add(Point2d point) {
+        if (point == null) return;
         bbBuilder.addPoint(point.x, point.y);
         points.add(point);
+        pointCount++;
     }
 
     private static Point2d toBoundingBox(Box2d bb, Point2d point) {
@@ -40,7 +44,7 @@ public class PointListBuilder implements IPointListBuilder<Point2d> {
 
     @Override
     public PointList<Point2d> buildPointList() {
-        final Box2d bb = bbBuilder.build();
+        final Box2d bb = buildBoundingBox();
 
         List<Point2d> relPoints = Lists.newArrayList();
         for (Point2d p : points) relPoints.add(toBoundingBox(bb, p));
@@ -50,7 +54,7 @@ public class PointListBuilder implements IPointListBuilder<Point2d> {
 
     @Override
     public Box2d buildBoundingBox() {
-        return bbBuilder.build();
+        return pointCount > 0 ? bbBuilder.build() : Box2d.NULL;
     }
 
 }

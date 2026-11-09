@@ -5,8 +5,8 @@
 [![Latest release](https://img.shields.io/github/v/release/MrFuzzihead/OpenPeripheral-Addons?include_prereleases&sort=semver)](https://github.com/MrFuzzihead/OpenPeripheral-Addons/releases/latest)
 [![Minecraft](https://img.shields.io/badge/Minecraft-1.7.10-62a34a)](https://minecraft.wiki/w/Java_Edition_1.7.10)
 [![Forge](https://img.shields.io/badge/Forge-10.13.4.1614-1e2b4f)](https://files.minecraftforge.net/net/minecraftforge/forge/index_1.7.10.html)
-[![ComputerCraft](https://img.shields.io/badge/ComputerCraft-3.3.0-2ea44f)](https://github.com/MrFuzzihead/Computercraft-Legacy)
-[![OpenPeripheral](https://img.shields.io/badge/OpenPeripheral-2.1.0-1e2b4f)](https://github.com/MrFuzzihead/OpenPeripheral)
+[![ComputerCraft](https://img.shields.io/badge/ComputerCraft-3.3.1-2ea44f)](https://github.com/MrFuzzihead/Computercraft-Legacy)
+[![OpenPeripheral](https://img.shields.io/badge/OpenPeripheral-2.1.1-1e2b4f)](https://github.com/MrFuzzihead/OpenPeripheral)
 
 An addon for OpenPeripheral, adding physical blocks and items to the game to enhance your ComputerCraft experience.
 
@@ -15,8 +15,8 @@ An addon for OpenPeripheral, adding physical blocks and items to the game to enh
 This repository is a **port/continuation of [OpenPeripheral-Addons](https://github.com/OpenMods/OpenPeripheral-Addons)**,
 the Open Mods add-on for OpenPeripheral, targeting Minecraft 1.7.10 and the
 [GTNH](https://www.gtnewhorizons.com/) modpack. It is built against
-[Computercraft-Legacy](https://github.com/MrFuzzihead/Computercraft-Legacy) 3.3.0 and
-[OpenPeripheral](https://github.com/MrFuzzihead/OpenPeripheral) 2.1.0.
+[Computercraft-Legacy](https://github.com/MrFuzzihead/Computercraft-Legacy) 3.3.1 and
+[OpenPeripheral](https://github.com/MrFuzzihead/OpenPeripheral) 2.1.1.
 
 It adds physical blocks and items to the game — peripherals, sensors and terminal
 accessories that can be placed, wired to computers and driven from Lua — rather
@@ -45,9 +45,9 @@ when the respective mod is loaded, so the addon runs without them.
 |------------------|------------------------------------------|
 | Minecraft        | 1.7.10                                   |
 | Minecraft Forge  | 10.13.4.1614                             |
-| ComputerCraft    | [3.3.0, ) (`Computercraft-Legacy`)       |
-| OpenPeripheral   | [2.1.0, ) (`MrFuzzihead/OpenPeripheral`) |
-| OpenModsLib      | [0.10.15, )                              |
+| ComputerCraft    | [3.3.1, ) (`Computercraft-Legacy`)       |
+| OpenPeripheral   | [2.1.1, ) (`MrFuzzihead/OpenPeripheral`) |
+| OpenModsLib      | 0.10.15 (pinned, see below)              |
 | lwjgl3ify        | Required by ComputerCraft 3.x (Java 17+) |
 | Railcraft        | Optional (Ticket Machine)                |
 
@@ -57,11 +57,14 @@ Everything is handled by the `com.gtnewhorizons.gtnhconvention` plugin. Load the
 IntelliJ and run `./gradlew build`, or use the wrapper from the command line:
 
 ```
-./gradlew build              # compile, test, format check
-./gradlew test               # tests only
-./gradlew runClient          # dev client (aliased to runClient25; ComputerCraft 3.x requires lwjgl3ify)
-./gradlew runServer          # dev server (aliased to runServer25; ComputerCraft 3.x requires lwjgl3ify)
-./gradlew spotlessApply      # apply formatting
+./gradlew build                     # compile, unit tests, coverage gate, format/checkstyle
+./gradlew test                      # unit tests only
+./gradlew jacocoTestReport          # HTML/XML coverage report
+./gradlew jacocoTestCoverageVerification  # enforce the coverage floor
+./gradlew gameTestServer            # dedicated-server in-game tests
+./gradlew runClient                 # dev client (aliased to runClient25; ComputerCraft 3.x requires lwjgl3ify)
+./gradlew runServer                 # dev server (aliased to runServer25; ComputerCraft 3.x requires lwjgl3ify)
+./gradlew spotlessApply             # apply formatting
 ```
 
 The Gradle daemon is pinned to Java 25 (see `.java-version`); the mod itself targets Java 8
@@ -69,6 +72,40 @@ bytecode (via Jabel). The output jar is placed in `build/libs/`. The plain
 `runClient`/`runServer` tasks are aliased to the modern `*25` variants, because
 ComputerCraft 3.x requires lwjgl3ify, which needs Java 17+ (see
 `addon.gradle.kts`).
+
+## Testing
+
+Unit tests live in `src/test/java` and run on a Java 8 toolchain with JUnit 4 and
+Mockito (including `mockito-inline` for final Minecraft classes). `./gradlew test`
+writes the JaCoCo execution data and `jacocoTestReport` produces
+`build/reports/jacoco/test/html/index.html`; `check` enforces the coverage floor
+configured in `addon.gradle.kts` (currently 70% line / 60% branch). The suite currently
+contains 157 unit tests and measures 73.5% line / 62.1% branch coverage.
+
+`src/gameTest/java` contains a separate test-only mod (`openperipheraladdons_gametest`)
+that is never included in the mod jar. It is only added to the run classpath with
+`-PgameTest` or the `gameTestServer` task, boots a real dedicated server, and exercises
+registration, the terminal-glasses NBT/recipe flow, the bridge/surface protocol, the
+selector, the sensor scan, and PIM behaviour. It exits with a non-zero status on the
+first failed assertion. CI runs it via `.github/workflows/game-test.yml`.
+
+On a fresh checkout, accept the server EULA first:
+
+```bash
+mkdir -p run/server && echo "eula=true" > run/server/eula.txt
+./gradlew gameTestServer
+```
+
+The optional `-PsmokeTest` flag (`./gradlew runServer25 -PsmokeTest`) uses
+`SmokeTestHook` to exit after FML load complete and logs
+`OPENPERIPHERAL_ADDONS_SMOKE_TEST_OK`; it is inert in normal runs.
+
+The dependency table pins OpenModsLib to 0.10.15 on purpose: GTNH packs ship 0.10.x,
+and building against 0.11.0 makes FML require `[0.11.0,0.12.0)`, which prevents the mod
+from loading in those packs. 0.10.15 and 0.11.0 are the same upstream commit.
+
+See [`CODEBASE_ANALYSIS.md`](CODEBASE_ANALYSIS.md) for the full audit that drove the
+current test suite and bug fixes.
 
 ## Configuration
 

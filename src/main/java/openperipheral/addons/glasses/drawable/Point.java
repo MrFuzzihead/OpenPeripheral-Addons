@@ -67,6 +67,7 @@ public class Point extends Drawable {
 
     @Override
     public void onUpdate() {
+        opacity = Math.max(0, Math.min(1, opacity));
         if (size <= 0) size = 1;
         updateBoundingBox();
     }

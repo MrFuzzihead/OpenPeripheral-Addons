@@ -6,15 +6,15 @@
     "description": "Random CC peripherals",
     "version": "${modVersion}",
     "mcversion": "${minecraftVersion}",
-    "url": "https://github.com/MrFuzzihead/https://github.com/MrFuzzihead/OpenPeripheral-Addons",
-    "updateUrl": "https://github.com/MrFuzzihead/https://github.com/MrFuzzihead/OpenPeripheral-Addons/releases/latest",
+    "url": "https://github.com/MrFuzzihead/OpenPeripheral-Addons",
+    "updateUrl": "https://github.com/MrFuzzihead/OpenPeripheral-Addons/releases/latest",
     "authorList": [
       "MrFuzzihead",
       "Mikeemoo",
-		"cybcaoyibo",
-		"SinZ",
-		"theoriginalbit",
-		"Foone"
+      "cybcaoyibo",
+      "SinZ",
+      "theoriginalbit",
+      "Foone"
     ],
     "credits": "",
     "logoFile": "",

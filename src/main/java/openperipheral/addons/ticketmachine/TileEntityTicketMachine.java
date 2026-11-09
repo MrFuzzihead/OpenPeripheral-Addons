@@ -108,12 +108,34 @@ public class TileEntityTicketMachine extends SyncedTileEntity
         syncMap.addUpdateListener(createRenderUpdateListener());
     }
 
+    static ItemStack createTicketStack(Item ticketItem, String ownerName, String destination, int amount) {
+        Preconditions.checkState(ticketItem != null, "Railcraft routing ticket item is not available");
+        Preconditions.checkArgument(
+            destination != null && !destination.isEmpty() && destination.length() <= 32,
+            "Destination must be between 1 and 32 characters");
+        Preconditions.checkArgument(amount > 0 && amount <= 64, "Amount must be between 1 and 64");
+
+        final ItemStack ticket = new ItemStack(ticketItem);
+        Preconditions.checkArgument(
+            amount <= ticket.getMaxStackSize(),
+            "Amount exceeds the ticket stack size (%s)",
+            ticket.getMaxStackSize());
+
+        final NBTTagCompound tag = ItemUtils.getItemTag(ticket);
+        tag.setString("owner", ownerName != null ? ownerName : "");
+        tag.setString("dest", destination);
+        ticket.stackSize = amount;
+        return ticket;
+    }
+
     @ScriptCallable(returnTypes = ReturnType.BOOLEAN, description = "Create a new ticket to the specified destination")
     public boolean createTicket(
         @Arg(name = "destination", description = "The destination for the ticket") String destination,
         @Arg(name = "amount") @Optionals Integer amount) {
         if (amount == null) amount = 1;
         else Preconditions.checkArgument(amount > 0 && amount <= 64, "Amount must be between 1 and 64");
+
+        final ItemStack newTicket = createTicketStack(ticketItem, owner.getValue(), destination, amount);
 
         ItemStack paperStack = inventory.getStackInSlot(SLOT_PAPER);
         Preconditions.checkArgument(
@@ -127,17 +149,14 @@ public class TileEntityTicketMachine extends SyncedTileEntity
 
         ItemStack output = inventory.getStackInSlot(SLOT_OUTPUT);
 
-        ItemStack newTicket = new ItemStack(ticketItem);
-        NBTTagCompound tag = ItemUtils.getItemTag(newTicket);
-        tag.setString("owner", owner.getValue());
-        tag.setString("dest", destination);
-
         if (output == null) {
             inventory.setInventorySlotContents(SLOT_OUTPUT, newTicket);
         } else if (ItemStack.areItemStackTagsEqual(output, newTicket) && output.isItemEqual(newTicket)
             && output.stackSize + amount <= output.getMaxStackSize()) {
                 output.stackSize += amount;
-            } else throw new IllegalArgumentException("No place in output slot");
+            } else {
+                throw new IllegalArgumentException("No place in output slot");
+            }
 
         inventory.decrStackSize(SLOT_PAPER, amount);
         inventory.decrStackSize(SLOT_INK, amount);

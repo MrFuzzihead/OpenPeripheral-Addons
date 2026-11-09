@@ -54,6 +54,24 @@ public class AdapterSensor implements IPeripheralAdapter {
         }
     }
 
+    @FunctionalInterface
+    interface ColorResolver {
+
+        int resolve(int color);
+    }
+
+    private static final ColorResolver DEFAULT_COLOR_RESOLVER = new ColorResolver() {
+
+        @Override
+        public int resolve(int color) {
+            return ColorUtils.findNearestColor(new RGB(color), 255).bitmask;
+        }
+    };
+
+    // Test seam: the default resolver loads OpenMods' OreDictionary-backed colour table, which cannot initialise
+    // without a running Forge environment. Production always uses DEFAULT_COLOR_RESOLVER.
+    static ColorResolver colorResolver = DEFAULT_COLOR_RESOLVER;
+
     // LRU cache with a maximum of 1000 entries; maps packed-RGB int -> color-bitmask int
     @SuppressWarnings("serial")
     private static final LinkedHashMap<Integer, Integer> COLOR_CACHE = new LinkedHashMap<Integer, Integer>(
@@ -134,9 +152,10 @@ public class AdapterSensor implements IPeripheralAdapter {
         return OpcAccess.entityMetaBuilder.createProxy(mob, sensorPos);
     }
 
-    private static boolean checkRange(int x, int y, int z, int rangeSq) {
+    static boolean isInScanRange(int x, int y, int z, int rangeSq) {
         final int distSq = x * x + y * y + z * z;
-        return (distSq == 0 || distSq > rangeSq);
+        // The sensor's own block is not part of the scan. Everything inside the sphere (including the border) is.
+        return distSq != 0 && distSq <= rangeSq;
     }
 
     private static String getBlockType(World world, Block block, int xPos, int yPos, int zPos) {
@@ -148,18 +167,21 @@ public class AdapterSensor implements IPeripheralAdapter {
         else return "UNKNOWN";
     }
 
+    private static final int BLACK_BITMASK = 1 << 15; // ColorMeta.BLACK.bitmask; avoids loading OreDictionary.
+
     private static int getBlockColorBitmask(World world, Block block, int xPos, int yPos, int zPos) {
         if (block == null) {
-            return ColorUtils.ColorMeta.BLACK.bitmask; // Default black -- same as air.
+            return BLACK_BITMASK; // Default black -- same as air.
         } else {
-            int color = block.getMapColor(block.getDamageValue(world, xPos, yPos, zPos)).colorValue;
-            Integer cached = COLOR_CACHE.get(color);
-            if (cached != null) return cached;
+            final int color = block.getMapColor(block.getDamageValue(world, xPos, yPos, zPos)).colorValue;
+            synchronized (COLOR_CACHE) {
+                final Integer cached = COLOR_CACHE.get(color);
+                if (cached != null) return cached;
 
-            RGB rgb = new RGB(color);
-            Integer nearestColorBitmask = ColorUtils.findNearestColor(rgb, 255).bitmask;
-            COLOR_CACHE.put(color, nearestColorBitmask);
-            return nearestColorBitmask;
+                final Integer nearestColorBitmask = colorResolver.resolve(color);
+                COLOR_CACHE.put(color, nearestColorBitmask);
+                return nearestColorBitmask;
+            }
         }
     }
 
@@ -274,7 +296,7 @@ public class AdapterSensor implements IPeripheralAdapter {
         for (int dx = -range; dx <= range; dx++) {
             for (int dy = -range; dy <= range; dy++) {
                 for (int dz = -range; dz <= range; dz++) {
-                    if (checkRange(dx, dy, dz, rangeSq)) {
+                    if (isInScanRange(dx, dy, dz, rangeSq)) {
                         Map<String, Object> result = describeBlock(world, sx, sy, sz, dx, dy, dz);
                         if (result != null) results.add(result);
                     }
@@ -294,7 +316,7 @@ public class AdapterSensor implements IPeripheralAdapter {
         @Arg(name = "zOffset", description = "The target's offset from the sensor on the Z-Axis.") int dz) {
         int range = 1 + env.getSensorRange() / 2;
         int rangeSq = range * range;
-        if (checkRange(dx, dy, dz, rangeSq)) return null;
+        if (!isInScanRange(dx, dy, dz, rangeSq)) return null;
 
         Vec3 sensorPos = env.getLocation();
         int sx = MathHelper.floor_double(sensorPos.xCoord);

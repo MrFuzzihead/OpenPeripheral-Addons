@@ -40,9 +40,7 @@ public abstract class TerminalEvent extends NetworkEvent {
 
     public abstract static class Reset extends TerminalEvent {
 
-        public Reset() {
-            super();
-        }
+        public Reset() {}
 
         public Reset(long terminalId) {
             super(terminalId);
@@ -74,50 +72,11 @@ public abstract class TerminalEvent extends NetworkEvent {
     }
 
     @NetworkEventMeta(direction = EventDirection.C2S)
-    public static class PublicStructureReset extends StructureReset {
-
-        public PublicStructureReset() {}
-
-        public PublicStructureReset(long terminalId) {
-            super(terminalId);
-        }
-
-        @Override
-        public SurfaceType getSurfaceType() {
-            return SurfaceType.GLOBAL;
-        }
-    }
-
-    public abstract static class StructureReset extends Reset {
-
-        public StructureReset() {}
-
-        public StructureReset(long terminalId) {
-            super(terminalId);
-        }
-    }
-
-    @NetworkEventMeta(direction = EventDirection.C2S)
     public static class PrivateDrawableReset extends DrawableReset {
 
         public PrivateDrawableReset() {}
 
         public PrivateDrawableReset(long terminalId) {
-            super(terminalId);
-        }
-
-        @Override
-        public SurfaceType getSurfaceType() {
-            return SurfaceType.PRIVATE;
-        }
-    }
-
-    @NetworkEventMeta(direction = EventDirection.C2S)
-    public static class PrivateStructureReset extends StructureReset {
-
-        public PrivateStructureReset() {}
-
-        public PrivateStructureReset(long terminalId) {
             super(terminalId);
         }
 
@@ -194,9 +153,7 @@ public abstract class TerminalEvent extends NetworkEvent {
             info.add(Integer.toString(commands.size()));
         }
 
-        public SurfaceClient createSurface() {
-            throw new AbstractMethodError();
-        }
+        public abstract SurfaceClient createSurface();
     }
 
     public abstract static class DrawableData extends Data {
@@ -205,11 +162,6 @@ public abstract class TerminalEvent extends NetworkEvent {
 
         public DrawableData(long terminalId) {
             super(terminalId);
-        }
-
-        @Override
-        public SurfaceClient createSurface() {
-            return SurfaceClient.createPrivateSurface(terminalId);
         }
     }
 
@@ -226,49 +178,10 @@ public abstract class TerminalEvent extends NetworkEvent {
         public SurfaceType getSurfaceType() {
             return SurfaceType.PRIVATE;
         }
-    }
-
-    @NetworkEventMeta(direction = EventDirection.S2C, chunked = true, compressed = true)
-    public static class PrivateStructureData extends StructureData {
-
-        public PrivateStructureData() {}
-
-        public PrivateStructureData(long terminalId) {
-            super(terminalId);
-        }
-
-        @Override
-        public SurfaceType getSurfaceType() {
-            return SurfaceType.PRIVATE;
-        }
-    }
-
-    public abstract static class StructureData extends Data {
-
-        public StructureData() {}
-
-        public StructureData(long terminalId) {
-            super(terminalId);
-        }
 
         @Override
         public SurfaceClient createSurface() {
-            return SurfaceClient.createPublicSurface(terminalId);
-        }
-    }
-
-    @NetworkEventMeta(direction = EventDirection.S2C, chunked = true, compressed = true)
-    public static class PublicStructureData extends StructureData {
-
-        public PublicStructureData() {}
-
-        public PublicStructureData(long terminalId) {
-            super(terminalId);
-        }
-
-        @Override
-        public SurfaceType getSurfaceType() {
-            return SurfaceType.GLOBAL;
+            return SurfaceClient.createPrivateSurface(terminalId);
         }
     }
 
@@ -285,6 +198,10 @@ public abstract class TerminalEvent extends NetworkEvent {
         public SurfaceType getSurfaceType() {
             return SurfaceType.GLOBAL;
         }
-    }
 
+        @Override
+        public SurfaceClient createSurface() {
+            return SurfaceClient.createPublicSurface(terminalId);
+        }
+    }
 }

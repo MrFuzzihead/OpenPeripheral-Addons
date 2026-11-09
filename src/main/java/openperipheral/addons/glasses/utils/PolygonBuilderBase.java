@@ -141,8 +141,12 @@ public abstract class PolygonBuilderBase<P, D> implements IPolygonBuilder<P> {
     @Override
     public IRenderCommand build() {
         Preconditions.checkState(started, "Builder already finished");
-        tesselator.gluEndPolygon();
-        started = failed;
+        try {
+            tesselator.gluEndPolygon();
+        } finally {
+            started = false;
+            tesselator.gluDeleteTess();
+        }
 
         return failed ? NULL_COMMAND : createCompositeCommand(commands);
     }

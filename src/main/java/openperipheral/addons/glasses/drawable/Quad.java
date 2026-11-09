@@ -38,7 +38,7 @@ public abstract class Quad<P> extends BoundedShape<P> {
 
     @Override
     protected void drawContents(RenderState renderState, float partialTicks) {
-        if (pointList != null) {
+        if (pointList != null && pointList.size() >= 4) {
             super.drawContents(renderState, partialTicks);
 
             GL11.glBegin(GL11.GL_QUADS);
@@ -52,7 +52,7 @@ public abstract class Quad<P> extends BoundedShape<P> {
 
     @Override
     protected boolean isVisible() {
-        return true;
+        return pointList != null && pointList.size() >= 4;
     }
 
     @Override

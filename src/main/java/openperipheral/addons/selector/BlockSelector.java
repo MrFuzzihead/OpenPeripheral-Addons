@@ -19,6 +19,12 @@ public class BlockSelector extends BlockOP implements ISelectionAware {
 
     private AxisAlignedBB selectorAABB;
 
+    private int selectorX = Integer.MIN_VALUE;
+
+    private int selectorY = Integer.MIN_VALUE;
+
+    private int selectorZ = Integer.MIN_VALUE;
+
     public BlockSelector() {
         super(Material.ground);
         setRotationMode(BlockRotationMode.TWELVE_DIRECTIONS);
@@ -38,7 +44,8 @@ public class BlockSelector extends BlockOP implements ISelectionAware {
 
     @Override
     public AxisAlignedBB getSelectedBoundingBoxFromPool(World world, int x, int y, int z) {
-        return selectorAABB != null ? selectorAABB : super.getSelectedBoundingBoxFromPool(world, x, y, z);
+        if (selectorAABB != null && selectorX == x && selectorY == y && selectorZ == z) return selectorAABB;
+        return super.getSelectedBoundingBoxFromPool(world, x, y, z);
     }
 
     @Override
@@ -52,8 +59,13 @@ public class BlockSelector extends BlockOP implements ISelectionAware {
 
         if (selector != null) {
             final MovingObjectPosition mop = evt.target;
-            this.selectorAABB = selector.getSelection(mop.hitVec, mop.sideHit);
-        } else this.selectorAABB = null;
+            this.selectorAABB = selector.getSelection(mop.hitVec);
+            this.selectorX = x;
+            this.selectorY = y;
+            this.selectorZ = z;
+        } else {
+            this.selectorAABB = null;
+        }
 
         return false;
     }

@@ -6,7 +6,7 @@ import openmods.network.event.EventDirection;
 import openmods.network.event.NetworkEventMeta;
 import openmods.network.event.SerializableNetworkEvent;
 import openmods.serializable.cls.Serialize;
-import openperipheral.addons.utils.GuiUtils.GuiElements;
+import openperipheral.addons.utils.GuiElements;
 import openperipheral.api.architecture.IArchitecture;
 
 public class GlassesEvent extends SerializableNetworkEvent {
@@ -24,11 +24,16 @@ public class GlassesEvent extends SerializableNetworkEvent {
         this.guid = guid;
     }
 
+    /** Required by {@code NetworkEventRegistry.createPacketType()} (Class.newInstance()). */
+    public GlassesEvent() {}
+
     public static class GlassesClientEvent extends GlassesEvent {
 
         public GlassesClientEvent(long guid) {
             super(guid);
         }
+
+        public GlassesClientEvent() {}
 
         public String getEventName() {
             throw new UnsupportedOperationException(getClass().getName() + " should not be used directly");
@@ -58,6 +63,8 @@ public class GlassesEvent extends SerializableNetworkEvent {
             this.isRepeat = isRepeat;
         }
 
+        public GlassesKeyDownEvent() {}
+
         @Override
         public String getEventName() {
             return "glasses_key_down";
@@ -81,6 +88,8 @@ public class GlassesEvent extends SerializableNetworkEvent {
             this.code = code;
         }
 
+        public GlassesKeyUpEvent() {}
+
         @Override
         public String getEventName() {
             return "glasses_key_up";
@@ -102,6 +111,8 @@ public class GlassesEvent extends SerializableNetworkEvent {
             super(guid);
             this.wheel = wheel;
         }
+
+        public GlassesMouseWheelEvent() {}
 
         @Override
         public String getEventName() {
@@ -128,6 +139,8 @@ public class GlassesEvent extends SerializableNetworkEvent {
             this.button = button;
             this.pressed = pressed;
         }
+
+        public GlassesMouseButtonEvent() {}
 
         @Override
         public String getEventName() {
@@ -161,6 +174,8 @@ public class GlassesEvent extends SerializableNetworkEvent {
             this.x = x;
             this.y = y;
         }
+
+        public GlassesComponentMouseEvent() {}
     }
 
     @NetworkEventMeta(direction = EventDirection.C2S)
@@ -174,6 +189,8 @@ public class GlassesEvent extends SerializableNetworkEvent {
             super(guid, componentId, surfaceType, x, y);
             this.wheel = wheel;
         }
+
+        public GlassesComponentMouseWheelEvent() {}
 
         @Override
         public String getEventName() {
@@ -202,6 +219,8 @@ public class GlassesEvent extends SerializableNetworkEvent {
             this.pressed = pressed;
         }
 
+        public GlassesComponentMouseButtonEvent() {}
+
         @Override
         public String getEventName() {
             return pressed ? "glasses_component_mouse_down" : "glasses_component_mouse_up";
@@ -228,6 +247,8 @@ public class GlassesEvent extends SerializableNetworkEvent {
             this.dy = dy;
         }
 
+        public GlassesMouseDragEvent() {}
+
         @Override
         public String getEventName() {
             return "glasses_mouse_drag";
@@ -250,6 +271,8 @@ public class GlassesEvent extends SerializableNetworkEvent {
             this.captureState = captureState;
         }
 
+        public GlassesSignalCaptureEvent() {}
+
         @Override
         public String getEventName() {
             return captureState ? "glasses_capture" : "glasses_release";
@@ -267,6 +290,8 @@ public class GlassesEvent extends SerializableNetworkEvent {
         public GlassesStopCaptureEvent(long guid) {
             super(guid);
         }
+
+        public GlassesStopCaptureEvent() {}
     }
 
     @NetworkEventMeta(direction = EventDirection.S2C)
@@ -279,6 +304,8 @@ public class GlassesEvent extends SerializableNetworkEvent {
             super(guid);
             this.backgroundColor = backgroundColor;
         }
+
+        public GlassesChangeBackgroundEvent() {}
     }
 
     @NetworkEventMeta(direction = EventDirection.S2C)
@@ -291,6 +318,8 @@ public class GlassesEvent extends SerializableNetworkEvent {
             super(guid);
             this.repeat = repeat;
         }
+
+        public GlassesSetKeyRepeatEvent() {}
     }
 
     @NetworkEventMeta(direction = EventDirection.S2C)
@@ -308,6 +337,8 @@ public class GlassesEvent extends SerializableNetworkEvent {
             this.threshold = threshold;
         }
 
+        public GlassesSetDragParamsEvent() {}
+
     }
 
     @NetworkEventMeta(direction = EventDirection.S2C)
@@ -320,5 +351,7 @@ public class GlassesEvent extends SerializableNetworkEvent {
             super(guid);
             this.visibility = visibility;
         }
+
+        public GlassesSetGuiVisibilityEvent() {}
     }
 }

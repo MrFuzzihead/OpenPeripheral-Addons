@@ -28,7 +28,7 @@ public abstract class Line<P> extends BoundedShape<P> {
 
     @Override
     protected void drawContents(RenderState renderState, float partialTicks) {
-        if (pointList != null) {
+        if (pointList != null && pointList.size() >= 2) {
             super.drawContents(renderState, partialTicks);
 
             renderState.setLineWidth(width);
@@ -42,7 +42,7 @@ public abstract class Line<P> extends BoundedShape<P> {
 
     @Override
     protected boolean isVisible() {
-        return true;
+        return pointList != null && pointList.size() >= 2;
     }
 
     @Override
