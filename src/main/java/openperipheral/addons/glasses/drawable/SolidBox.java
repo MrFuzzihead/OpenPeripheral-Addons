@@ -79,6 +79,7 @@ public class SolidBox extends Drawable {
     public void onUpdate() {
         super.onUpdate();
 
+        opacity = Math.max(0, Math.min(1, opacity));
         setBoundingBox(Box2d.fromOriginAndSize(x, y, width, height));
     }
 }

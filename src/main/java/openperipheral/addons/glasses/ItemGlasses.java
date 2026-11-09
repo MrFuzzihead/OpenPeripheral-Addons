@@ -8,6 +8,7 @@ import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
+import net.minecraftforge.common.util.Constants;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -29,8 +30,8 @@ public class ItemGlasses extends ItemArmor implements ITerminalItem {
     }
 
     private static Long extractGuid(ItemStack stack) {
-        NBTTagCompound tag = ItemUtils.getItemTag(stack);
-        if (!tag.hasKey(OPENP_TAG)) return null;
+        NBTTagCompound tag = stack.getTagCompound();
+        if (tag == null || !tag.hasKey(OPENP_TAG, Constants.NBT.TAG_COMPOUND)) return null;
 
         NBTTagCompound openp = tag.getCompoundTag(OPENP_TAG);
         return TerminalUtils.extractGuid(openp);
@@ -68,8 +69,10 @@ public class ItemGlasses extends ItemArmor implements ITerminalItem {
     public void bindToTerminal(ItemStack stack, long guid) {
         NBTTagCompound tag = ItemUtils.getItemTag(stack);
 
-        NBTTagCompound openPTag = (NBTTagCompound) tag.getTag(OPENP_TAG);
-        if (openPTag == null) {
+        final NBTTagCompound openPTag;
+        if (tag.hasKey(OPENP_TAG, Constants.NBT.TAG_COMPOUND)) {
+            openPTag = tag.getCompoundTag(OPENP_TAG);
+        } else {
             openPTag = new NBTTagCompound();
             tag.setTag(OPENP_TAG, openPTag);
         }

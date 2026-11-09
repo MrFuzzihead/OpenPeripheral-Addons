@@ -46,14 +46,12 @@ public class TerminalManagerClient {
         public final SurfaceType surfaceType;
         public final float dx;
         public final float dy;
-        public final int z;
 
-        public DrawableHitInfo(int id, SurfaceType surfaceType, float dx, float dy, int z) {
+        public DrawableHitInfo(int id, SurfaceType surfaceType, float dx, float dy) {
             this.id = id;
             this.surfaceType = surfaceType;
             this.dx = dx;
             this.dy = dy;
-            this.z = z;
         }
     }
 
@@ -68,7 +66,7 @@ public class TerminalManagerClient {
     private void tryDrawSurface(long guid, SurfaceType type, float partialTicks, ScaledResolution resolution) {
         SurfaceClient surface = surfaces.get(guid, type);
         if (surface != null) {
-            GL11.glPushAttrib(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_ENABLE_BIT);
+            GL11.glPushAttrib(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_ENABLE_BIT | GL11.GL_LINE_BIT | GL11.GL_POINT_BIT);
             GL11.glShadeModel(GL11.GL_SMOOTH);
 
             final RenderState renderState = new RenderState();
@@ -266,7 +264,7 @@ public class TerminalManagerClient {
         final int screenHeight = resolution.getScaledHeight();
 
         for (Drawable d : Lists.reverse(surface.getSortedDrawables())) {
-            if (!d.isClickable()) continue;
+            if (!d.shouldRender() || !d.isClickable()) continue;
 
             final Box2d bb = d.getBoundingBox();
             final Point2d localClick = d.transformToLocal(clickX, clickY, screenWidth, screenHeight);
@@ -275,7 +273,7 @@ public class TerminalManagerClient {
             final float localY = localClick.y;
 
             if (0 <= localX && 0 <= localY && localX < bb.width && localY < bb.height) {
-                return new DrawableHitInfo(d.getId(), surfaceType, localX, localY, d.z);
+                return new DrawableHitInfo(d.getId(), surfaceType, localX, localY);
             }
         }
 

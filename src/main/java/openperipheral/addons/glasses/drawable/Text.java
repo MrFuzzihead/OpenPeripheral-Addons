@@ -56,6 +56,8 @@ public class Text extends Drawable {
     @Override
     @SideOnly(Side.CLIENT)
     protected void drawContents(RenderState renderState, float partialTicks) {
+        if (Strings.isNullOrEmpty(text)) return;
+
         renderState.setupTexturedRender();
         renderState.setColor(color, alpha);
 
@@ -72,13 +74,15 @@ public class Text extends Drawable {
 
     @Override
     public boolean isVisible() {
-        return alpha > 0;
+        return alpha > 0 && scale > 0;
     }
 
     @Override
     public void onUpdate() {
         super.onUpdate();
 
+        alpha = Math.max(0, Math.min(1, alpha));
+        scale = Math.max(0, scale);
         updateBoundingBox();
     }
 

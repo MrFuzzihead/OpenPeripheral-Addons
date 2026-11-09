@@ -13,7 +13,6 @@ import openmods.Mods;
 import openperipheral.addons.BlockOP;
 import openperipheral.addons.Config;
 import openperipheral.addons.ModuleComputerCraft;
-import openperipheral.addons.OpenPeripheralAddons;
 
 public class BlockSensor extends BlockOP {
 
@@ -41,11 +40,6 @@ public class BlockSensor extends BlockOP {
     @Override
     public boolean isOpaqueCube() {
         return false;
-    }
-
-    @Override
-    public int getRenderType() {
-        return OpenPeripheralAddons.renderId;
     }
 
     @Override

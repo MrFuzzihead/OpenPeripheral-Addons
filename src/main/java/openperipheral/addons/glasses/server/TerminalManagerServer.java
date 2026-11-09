@@ -2,6 +2,7 @@ package openperipheral.addons.glasses.server;
 
 import java.util.Map;
 
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.event.ServerChatEvent;
 
@@ -12,11 +13,13 @@ import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.Phase;
 import cpw.mods.fml.common.gameevent.TickEvent.PlayerTickEvent;
+import openmods.Log;
 import openperipheral.addons.Config;
 import openperipheral.addons.api.TerminalRegisterEvent;
 import openperipheral.addons.glasses.GlassesEvent.GlassesClientEvent;
 import openperipheral.addons.glasses.TerminalEvent;
 import openperipheral.addons.glasses.TerminalIdAccess;
+import openperipheral.addons.glasses.TerminalUtils;
 import openperipheral.addons.glasses.TileEntityGlassesBridge;
 
 public class TerminalManagerServer {
@@ -61,12 +64,14 @@ public class TerminalManagerServer {
 
         @SubscribeEvent
         public void onResetRequest(TerminalEvent.PrivateDrawableReset evt) {
+            if (!isEventOwner(evt.sender, evt.terminalId)) return;
             TileEntityGlassesBridge listener = listeners.get(evt.terminalId);
             if (listener != null) listener.handlePrivateDrawableResetRequest(evt);
         }
 
         @SubscribeEvent
         public void onResetRequest(TerminalEvent.PublicDrawableReset evt) {
+            if (!isEventOwner(evt.sender, evt.terminalId)) return;
             TileEntityGlassesBridge listener = listeners.get(evt.terminalId);
             if (listener != null) listener.handlePublicDrawableResetRequest(evt);
         }
@@ -79,9 +84,29 @@ public class TerminalManagerServer {
 
         @SubscribeEvent
         public void onGlassesEvent(GlassesClientEvent evt) {
+            if (!isEventOwner(evt.sender, evt.guid)) return;
             TileEntityGlassesBridge listener = listeners.get(evt.guid);
             if (listener != null) listener.handleUserEvent(evt);
         }
+    }
+
+    /**
+     * Client-to-server glasses events are only valid for the terminal the sender is currently wearing. Without this
+     * check any client could inject input into another player's surface, or reset it by guessing the terminal id.
+     */
+    static boolean isEventOwner(EntityPlayer player, long terminalId) {
+        if (player == null) return false;
+
+        final Optional<Long> guid = TerminalIdAccess.instance.getIdFrom(player);
+        if (!guid.isPresent() || guid.get() != terminalId) {
+            Log.warn(
+                "Rejecting glasses event for terminal %s from %s",
+                TerminalUtils.formatTerminalId(terminalId),
+                player.getCommandSenderName());
+            return false;
+        }
+
+        return true;
     }
 
     public Object createForgeListener() {
@@ -108,5 +133,9 @@ public class TerminalManagerServer {
 
     public void registerBridge(long terminalId, TileEntityGlassesBridge bridge) {
         listeners.put(terminalId, bridge);
+    }
+
+    public void unregisterBridge(long terminalId, TileEntityGlassesBridge bridge) {
+        if (listeners.get(terminalId) == bridge) listeners.remove(terminalId);
     }
 }

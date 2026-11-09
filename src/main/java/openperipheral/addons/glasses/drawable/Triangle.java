@@ -29,7 +29,7 @@ public abstract class Triangle<P> extends BoundedShape<P> {
 
     @Override
     protected void drawContents(RenderState renderState, float partialTicks) {
-        if (pointList != null) {
+        if (pointList != null && pointList.size() >= 3) {
             super.drawContents(renderState, partialTicks);
 
             GL11.glBegin(GL11.GL_TRIANGLES);
@@ -42,7 +42,7 @@ public abstract class Triangle<P> extends BoundedShape<P> {
 
     @Override
     protected boolean isVisible() {
-        return true;
+        return pointList != null && pointList.size() >= 3;
     }
 
     @Override

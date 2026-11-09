@@ -33,7 +33,7 @@ public abstract class Polygon<P> extends BoundedShape<P> {
 
     @Override
     protected boolean isVisible() {
-        return pointList.size() > 1;
+        return pointList != null && pointList.size() > 2;
     }
 
     protected final boolean canRender() {
@@ -49,6 +49,11 @@ public abstract class Polygon<P> extends BoundedShape<P> {
     @Override
     public void onUpdate() {
         super.onUpdate();
+        if (pointList == null || pointList.size() < 3) {
+            renderCommands = null;
+            return;
+        }
+
         final IPolygonBuilder<P> builder = createPolygonBuilder();
 
         for (P point : pointList) builder.addPoint(point);

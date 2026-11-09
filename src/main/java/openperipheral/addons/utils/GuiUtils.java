@@ -6,23 +6,11 @@ import net.minecraftforge.client.GuiIngameForge;
 
 import com.google.common.collect.Maps;
 
-public class GuiUtils {
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
-    public static enum GuiElements {
-        OVERLAY,
-        PORTAL,
-        HOTBAR,
-        CROSSHAIRS,
-        BOSS_HEALTH,
-        HEALTH,
-        ARMOR,
-        FOOD,
-        MOUNT_HEALTH,
-        AIR,
-        EXPERIENCE,
-        JUMP_BAR,
-        OBJECTIVES;
-    }
+@SideOnly(Side.CLIENT)
+public class GuiUtils {
 
     public static void setGuiElementState(GuiElements element, boolean isVisible) {
         switch (element) {

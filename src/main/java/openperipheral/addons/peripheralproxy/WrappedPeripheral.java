@@ -1,5 +1,7 @@
 package openperipheral.addons.peripheralproxy;
 
+import com.google.common.base.Preconditions;
+
 import dan200.computercraft.api.lua.ILuaContext;
 import dan200.computercraft.api.lua.LuaException;
 import dan200.computercraft.api.peripheral.IComputerAccess;
@@ -11,23 +13,23 @@ public class WrappedPeripheral implements IPeripheralTargeted {
     private final IPeripheral peripheral;
 
     public WrappedPeripheral(IPeripheral peripheral) {
-        this.peripheral = peripheral;
+        this.peripheral = Preconditions.checkNotNull(peripheral, "peripheral");
     }
 
     @Override
     public String getType() {
-        return (peripheral != null) ? peripheral.getType() : null;
+        return peripheral.getType();
     }
 
     @Override
     public String[] getMethodNames() {
-        return (peripheral != null) ? peripheral.getMethodNames() : null;
+        return peripheral.getMethodNames();
     }
 
     @Override
     public Object[] callMethod(IComputerAccess computer, ILuaContext context, int method, Object[] arguments)
         throws LuaException, InterruptedException {
-        return (peripheral != null) ? peripheral.callMethod(computer, context, method, arguments) : null;
+        return peripheral.callMethod(computer, context, method, arguments);
     }
 
     // CC 3.2: the Lua bridge now calls callMethodResult(...), whose IPeripheral default delegates to
@@ -36,17 +38,17 @@ public class WrappedPeripheral implements IPeripheralTargeted {
     @Override
     public Object callMethodResult(IComputerAccess computer, ILuaContext context, int method, Object[] arguments)
         throws LuaException, InterruptedException {
-        return (peripheral != null) ? peripheral.callMethodResult(computer, context, method, arguments) : null;
+        return peripheral.callMethodResult(computer, context, method, arguments);
     }
 
     @Override
     public void attach(IComputerAccess computer) {
-        if (peripheral != null) peripheral.attach(computer);
+        peripheral.attach(computer);
     }
 
     @Override
     public void detach(IComputerAccess computer) {
-        if (peripheral != null) peripheral.detach(computer);
+        peripheral.detach(computer);
     }
 
     // CC 3.3: InventoryPeripheral resolves networked peripherals through IPeripheralTargeted to find the inventory
@@ -60,7 +62,19 @@ public class WrappedPeripheral implements IPeripheralTargeted {
 
     @Override
     public boolean equals(IPeripheral other) {
-        return other != null && other.equals(peripheral);
+        if (this == other) return true;
+        if (other == null) return false;
+        if (other instanceof WrappedPeripheral) {
+            final IPeripheral otherDelegate = ((WrappedPeripheral) other).peripheral;
+            return peripheral == otherDelegate || peripheral.equals(otherDelegate);
+        }
+
+        return peripheral.equals(other);
+    }
+
+    @Override
+    public int hashCode() {
+        return peripheral.hashCode();
     }
 
 }

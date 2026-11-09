@@ -38,7 +38,7 @@ public class ColorPoint2d {
 
     @Override
     public String toString() {
-        return String.format("(%f,%f %06X:%.2f", x, y, rgb, opacity);
+        return String.format("(%f,%f %06X:%.2f)", x, y, rgb, opacity);
     }
 
 }

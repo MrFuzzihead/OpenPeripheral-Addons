@@ -30,7 +30,7 @@ public abstract class LineStrip<P> extends BoundedShape<P> {
 
     @Override
     protected void drawContents(RenderState renderState, float partialTicks) {
-        if (points != null) {
+        if (points != null && pointList != null && pointList.size() > 1) {
             super.drawContents(renderState, partialTicks);
 
             renderState.setLineWidth(width);
@@ -43,7 +43,7 @@ public abstract class LineStrip<P> extends BoundedShape<P> {
 
     @Override
     protected boolean isVisible() {
-        return pointList.size() > 1;
+        return pointList != null && pointList.size() > 1;
     }
 
     @Override

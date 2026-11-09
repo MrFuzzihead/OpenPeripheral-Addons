@@ -149,7 +149,7 @@ public class TileEntitySelector extends SyncedTileEntity implements IActivateAwa
         if (player.isSneaking()) return true;
 
         Vec3 vec = Vec3.createVectorHelper(xCoord + hitX, yCoord + hitY, zCoord + hitZ);
-        ItemSlot slot = getClickedSlot(vec, side);
+        ItemSlot slot = getClickedSlot(vec);
 
         if (slot == null) {
             openGui(OpenPeripheralAddons.instance, player);
@@ -172,7 +172,7 @@ public class TileEntitySelector extends SyncedTileEntity implements IActivateAwa
     public ItemStack getSlotOneBased(
         @Arg(name = "slot", description = "The slot you want to get details about") Index slot) {
 
-        slot.checkElementIndex("slot id", 10);
+        slot.checkElementIndex("slot id", 9);
         return slots[slot.value].get();
     }
 
@@ -190,7 +190,7 @@ public class TileEntitySelector extends SyncedTileEntity implements IActivateAwa
     public void setSlots(@Env(Constants.ARG_ARCHITECTURE) IArchitecture access,
         @Arg(name = "items", description = "A table containing itemstacks") Map<Index, ItemStack> stacks) {
         for (int slot = 0; slot < 9; slot++) {
-            final ItemStack value = stacks.get(access.wrapObject(slot));
+            final ItemStack value = stacks.get(access.createIndex(slot));
             if (value != null) value.stackSize = 1;
 
             this.slots[slot].set(value);
@@ -205,7 +205,7 @@ public class TileEntitySelector extends SyncedTileEntity implements IActivateAwa
             name = "item",
             description = "The item you want to display. nil to set empty") ItemStack stack) {
 
-        slot.checkElementIndex("slot id", 10);
+        slot.checkElementIndex("slot id", 9);
 
         if (stack != null) stack.stackSize = 1;
 
@@ -304,8 +304,15 @@ public class TileEntitySelector extends SyncedTileEntity implements IActivateAwa
             }
 
             @Override
-            public ItemStack decrStackSize(int p_70298_1_, int p_70298_2_) {
-                throw new UnsupportedOperationException();
+            public ItemStack decrStackSize(int slot, int amount) {
+                final ItemStack current = slots[slot].get();
+                if (current == null || amount <= 0) return null;
+
+                final ItemStack result = current.copy();
+                result.stackSize = Math.min(amount, current.stackSize);
+                current.stackSize -= result.stackSize;
+                slots[slot].set(current.stackSize > 0 ? current : null);
+                return result;
             }
 
             @Override
@@ -313,7 +320,7 @@ public class TileEntitySelector extends SyncedTileEntity implements IActivateAwa
         };
     }
 
-    public AxisAlignedBB getSelection(Vec3 hitVec, int side) {
+    public AxisAlignedBB getSelection(Vec3 hitVec) {
         final Orientation orientation = getOrientation();
         final Vec3 mappedVec = BlockSpaceTransform.instance
             .mapWorldToBlock(orientation, hitVec.xCoord - xCoord, hitVec.yCoord - yCoord, hitVec.zCoord - zCoord);
@@ -329,7 +336,7 @@ public class TileEntitySelector extends SyncedTileEntity implements IActivateAwa
         return null;
     }
 
-    private ItemSlot getClickedSlot(Vec3 hitVec, int side) {
+    private ItemSlot getClickedSlot(Vec3 hitVec) {
         final Orientation orientation = getOrientation();
         final Vec3 mappedVec = BlockSpaceTransform.instance
             .mapWorldToBlock(orientation, hitVec.xCoord - xCoord, hitVec.yCoord - yCoord, hitVec.zCoord - zCoord);

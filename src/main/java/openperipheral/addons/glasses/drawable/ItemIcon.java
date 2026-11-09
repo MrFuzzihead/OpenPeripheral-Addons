@@ -3,7 +3,6 @@ package openperipheral.addons.glasses.drawable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
@@ -112,17 +111,24 @@ public class ItemIcon extends Drawable {
 
     @Override
     public boolean isVisible() {
-        return drawStack != null;
+        return drawStack != null && scale > 0;
     }
 
     @Override
     public void onUpdate() {
         super.onUpdate();
 
+        damageBar = Math.max(0, Math.min(1, damageBar));
+        scale = Math.max(0, scale);
         this.drawStack = findDrawStack(itemId, meta);
 
-        int damage = (int) (damageBar * Items.diamond_hoe.getMaxDamage());
-        this.dummyStack = new ItemStack(Items.diamond_hoe, 1, damage);
+        final Item item = drawStack != null ? drawStack.getItem() : null;
+        if (item != null) {
+            final int damage = (int) (damageBar * item.getMaxDamage());
+            this.dummyStack = new ItemStack(item, 1, damage);
+        } else {
+            this.dummyStack = null;
+        }
 
         final int width = Math.round(BASE_WIDTH * scale);
         final int height = Math.round(BASE_HEIGHT * scale);

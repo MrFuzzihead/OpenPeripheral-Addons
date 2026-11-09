@@ -68,8 +68,17 @@ public class NbtGuidProviders {
     }
 
     public static void setTerminalGuid(ItemStack stack, Optional<Long> guid) {
-        final NBTTagCompound terminalTag = getOrCreateTerminalTag(stack);
-        if (guid.isPresent()) terminalTag.setLong(GUID_TAG, guid.get());
+        if (guid.isPresent()) {
+            final NBTTagCompound terminalTag = getOrCreateTerminalTag(stack);
+            terminalTag.setLong(GUID_TAG, guid.get());
+        } else {
+            // Unbinding must not leave a stale key behind, and reading a plain item should not create NBT.
+            final NBTTagCompound itemTag = stack.getTagCompound();
+            if (itemTag != null && itemTag.hasKey(MAIN_TAG, Constants.NBT.TAG_COMPOUND)) {
+                itemTag.getCompoundTag(MAIN_TAG)
+                    .removeTag(GUID_TAG);
+            }
+        }
     }
 
 }

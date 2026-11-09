@@ -29,10 +29,14 @@ public class ColorPointListBuilder implements IPointListBuilder<ColorPoint2d> {
 
     private final BoundingBoxBuilder bbBuilder = BoundingBoxBuilder.create();
 
+    private int pointCount;
+
     @Override
     public void add(ColorPoint2d point) {
+        if (point == null) return;
         bbBuilder.addPoint(point.x, point.y);
         points.add(point);
+        pointCount++;
     }
 
     private static ColorPoint2d toBoundingBox(Box2d bb, ColorPoint2d point) {
@@ -41,7 +45,7 @@ public class ColorPointListBuilder implements IPointListBuilder<ColorPoint2d> {
 
     @Override
     public IPointList<ColorPoint2d> buildPointList() {
-        final Box2d bb = bbBuilder.build();
+        final Box2d bb = buildBoundingBox();
 
         List<ColorPoint2d> relPoints = Lists.newArrayList();
         for (ColorPoint2d p : points) relPoints.add(toBoundingBox(bb, p));
@@ -51,6 +55,6 @@ public class ColorPointListBuilder implements IPointListBuilder<ColorPoint2d> {
 
     @Override
     public Box2d buildBoundingBox() {
-        return bbBuilder.build();
+        return pointCount > 0 ? bbBuilder.build() : Box2d.NULL;
     }
 }
